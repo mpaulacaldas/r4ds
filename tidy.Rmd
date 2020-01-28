@@ -89,7 +89,18 @@ ggplot(table1, aes(year, cases)) +
 
 1.  Using prose, describe how the variables and observations are organised in
     each of the sample tables.
-
+    
+    <div class="answer">
+        
+    - `table1`: There is one variable per column and one row per observation. An observation is defined by a country-year pair. 
+    - `table2`: Each observation is spread over two rows (i.e. there are two rows per country-year pair). The values of the *cases* and *population* variables have been put together in a single column called *count*, and the column *type* has been added to retain the mapping from the original variable name to its values.
+    - `table3`: There is one observation per row, but the *cases* and *population* variables are stored in the column *rate* as a single string variable. 
+    - `table4a`: The table gives the number of TB cases per country in 1999 and 2000. The *cases* variable is spread over two columns, named after the values of the variable *year*.
+    - `table4b`: The table gives the population of each country in 1999 and 2000. The *population* variable is spread over two columns, named after the values of the variable *year*.
+    
+    </div>
+    
+    
 1.  Compute the `rate` for `table2`, and `table4a` + `table4b`. 
     You will need to perform four operations:
 
@@ -99,9 +110,55 @@ ggplot(table1, aes(year, cases)) +
     1.  Store back in the appropriate place.
     
     Which representation is easiest to work with? Which is hardest? Why?
-
+    
+    <div class="answer">
+    
+    For `table2`, it is relatively easy to calculate the rate and add it as a new variable if we group our data and take advantage of the fact that the population count is greater than the TB count. Also, here I am assuming that the "appropriate place" is a new column, not a new row below the population and cases rows for each country.
+    
+    ```{r}
+    table2 %>% 
+      group_by(country, year) %>% 
+      # taking advantage of the fact that population > cases
+      mutate(rate = min(count) * 10000 / max(count)) %>% 
+      ungroup()
+    ```
+    
+    Note that the above approach isn't particularly robust. It depends on our data being "clean", i.e. on the population to always being greater than the number of TB cases. Moreover, it does not generalise well. Just imagine: what would happen if we had more than two rows per country? For example, if we also had rows specifying the number of infants and elderly per country? Then a rule that depends on the maximum or minimum value of `count` would not be advisable.
+    
+    Now, if we follow the four operations suggested by the authors, we would come up with a slightly lengthier but more robust solution. Below is a nice little trick where I take advantage of the fact that `FALSE` and `TRUE` translate to `0` and `1` in integer operations. Although better, this approach could also fail when there are _implicit_ missing values.
+    
+    ```{r}
+    table2 %>% 
+      mutate(
+        cases = (type == "cases") * count,
+        population = (type == "population") * count
+      ) %>% 
+      group_by(country, year) %>% 
+      mutate_at(vars(cases, population), max) %>%
+      ungroup() %>% 
+      mutate(rate = cases * 10000 / population)
+    ```
+    
+    </div>
+    
+    
 1.  Recreate the plot showing change in cases over time using `table2`
     instead of `table1`. What do you need to do first?
+    
+    <div class="answer">
+    
+    We need to remove the population counts from our tibble and rename the *count* variable.
+    
+    ```{r}
+    table2 %>% 
+      filter(type == "cases") %>% 
+      rename(cases = count) %>% 
+      ggplot(aes(year, cases)) + 
+      geom_line(aes(group = country), colour = "grey50") + 
+      geom_point(aes(colour = country))
+    ```
+    
+    </div>
 
 ## Pivoting
 
@@ -207,7 +264,7 @@ As you might have guessed from their names, `pivot_wider()` and `pivot_longer()`
 1.  Why are `pivot_longer()` and `pivot_wider()` not perfectly symmetrical?  
     Carefully consider the following example:
     
-    ```{r, eval = FALSE}
+    ```{r stocks, echo = TRUE, results = "hide"}
     stocks <- tibble(
       year   = c(2015, 2015, 2016, 2016),
       half  = c(   1,    2,     1,    2),
@@ -222,6 +279,37 @@ As you might have guessed from their names, `pivot_wider()` and `pivot_longer()`
     
     `pivot_longer()` has a `names_ptype` argument, e.g. 
     `names_ptype = list(year = double())`. What does it do?
+    
+    <div class="answer">
+    
+    The original tibble looks like this:
+    
+    ```{r, echo = FALSE}
+    stocks
+    ```
+    
+    And the second one:
+    
+    ```{r ref.label="stocks", echo=FALSE, results = "show"}
+    ```
+    
+    The first difference that our brain will immediately identify is the change in the order of columns. This change, however, is not important because what we really should focus on is the values and format of our variables.
+    
+    This brings us to the real difference between the two data frames: the vector type of the `year` variable. In the original data, the `year` variable is encoded as a vector of type `"double"` (i.e. a numeric vector), whilst in the second the variable is encoded as type `"character"`. This happens because `pivot_longer()` generates a character vector by default from the column names of the original table. This is a good default, as column names tend to be character strings. If we want to force the conversion to double, we can specify the desired column type in the `names_ptypes` argument like so:
+    
+    ```{r}
+    stocks %>% 
+      pivot_wider(names_from = year, values_from = return) %>% 
+      pivot_longer(
+        `2015`:`2016`, 
+        names_to = "year", 
+        names_ptypes = list(year = double()),
+        values_to = "return"
+        )
+    ```
+    
+    
+    </div>
 
 1.  Why does this code fail?
 
@@ -229,6 +317,16 @@ As you might have guessed from their names, `pivot_wider()` and `pivot_longer()`
     table4a %>% 
       pivot_longer(c(1999, 2000), names_to = "year", values_to = "cases")
     ```
+    
+    <div class="answer">
+    `pivot_longer()` uses the same grammar that `dplyr::select()` to refer to columns, which requires variable names starting with numbers to be wrapped with backticks.
+    
+    ```{r}
+    table4a %>% 
+      pivot_longer(c(`1999`, `2000`), names_to = "year", values_to = "cases")
+    ```
+    
+    </div>
 
 1.  What would happen if you widen this table? Why? How could you add a 
     new column to uniquely identify each value?
@@ -244,6 +342,65 @@ As you might have guessed from their names, `pivot_wider()` and `pivot_longer()`
       "Jessica Cordero", "height",   156
     )
     ```
+    
+    <div class="answer">
+    
+    We don't truly know anything about these Phillip Woods unless we can check with the person that collected the data. Here is a list of things that could be going on and how I would go about treating them:
+    
+      - We are talking about only one Phillip Woods, but we forgot to remove an old entry of his age.
+      
+        ```{r}
+        people %>% 
+          pivot_wider(
+            names_from = "names", 
+            values_from = "values", 
+            values_fn = list(values = max) # takes the max age
+            )
+        ```
+      
+      - There are two Phillip Woods. We know the height and age of one of them (186 and 45), and the age (50) of the other but not his height.
+      
+        ```{r}
+        people %>% 
+          group_by(name, names) %>% 
+          mutate(n = row_number()) %>% 
+          ungroup() %>% 
+          mutate(name = paste(name, n)) %>% 
+          select(-n) %>% 
+          pivot_wider(
+            names_from = "names",
+            values_from = "values"
+          )
+        ```
+      
+      - There are two Phillip Woods, with different ages but same height.
+      
+        ```{r}
+        people %>% 
+          pivot_wider(
+            names_from = "names", 
+            values_from = "values", 
+            values_fn = list(values = list)
+            ) %>% 
+          unnest(cols = c(age, height)) # recycles the height
+        ```
+    
+      - There are three Phillip Woods, and we don't know either the height or the age of each one of them. Same goes for Jessica.
+    
+        ```{r}
+        people %>% 
+          group_by(name) %>% 
+          mutate(n = row_number()) %>% 
+          ungroup() %>% 
+          mutate(name = paste(name, n)) %>% 
+          select(-n) %>% 
+          pivot_wider(
+            names_from = "names",
+            values_from = "values"
+          )
+        ```
+    
+    </div>
 
 1.  Tidy the simple tibble below. Do you need to make it wider or longer?
     What are the variables?
@@ -255,6 +412,23 @@ As you might have guessed from their names, `pivot_wider()` and `pivot_longer()`
       "no",      20,    12
     )
     ```
+    
+    <div class="answer">
+    
+    Sadly, the first thing that comes to mind is:
+    
+    ```{r}
+    preg %>% 
+      pivot_longer(
+        male:female, 
+        names_to = "sex", 
+        values_to = "age", 
+        values_drop_na = TRUE
+        )
+    ```
+    
+    </div>
+    
 
 ## Separating and uniting
 
@@ -338,13 +512,110 @@ table5 %>%
     tibble(x = c("a,b,c", "d,e", "f,g,i")) %>% 
       separate(x, c("one", "two", "three"))
     ```
-
+    
+    <div class="answer">
+    
+    The `extra` argument controls what happens when there are *too many pieces*--- i.e. when pieces from our split outnumber the columns specified in the `into` argument. Let's explore it with the first toy dataset.
+    
+    ```{r}
+    (toy1 <- tibble(x = c("a,b,c", "d,e,f,g", "h,i,j")))
+    ```
+    
+    - `extra = "warn"` drops the extra piece from row 2 and gives us a warning. Note that we don't even have to actually write out `extra = "warn"` since this is the default.
+      ```{r}
+      toy1 %>% 
+        separate(x, c("one", "two", "three"))
+      ```
+      
+    - `extra = "drop"` drops the extra piece without raising a warning.
+      ```{r}
+      toy1 %>% 
+        separate(x, c("one", "two", "three"), extra = "drop")
+      ```
+      
+    - `extra = "merge"` separates our original column into three, but keeps all of the information by merging the extra pieces in the last column
+      ```{r}
+      toy1 %>% 
+        separate(x, c("one", "two", "three"), extra = "merge")
+      ```
+    
+    The `fill` argument does the opposite: it controls what happens when there are *not enough pieces*--- i.e. when we have more columns than split pieces.
+    
+    ```{r}
+    (toy2 <- tibble(x = c("a,b,c", "d,e", "f,g,i")))
+    ```
+    
+    - `fill = "warn"` warns us that the variable cannot be split into three pieces and adds NAs at the right end of the row where the pieces are missing.
+      ```{r}
+      toy2 %>% 
+        separate(x, c("one", "two", "three"))
+      ```
+    
+    - `fill = "right"` adds NAs at the right end of the row where the pieces are missing, but does not raise a warning.
+      ```{r}
+      toy2 %>% 
+        separate(x, c("one", "two", "three"), fill = "right")
+      ```
+    
+    - `fill = "left"` adds the NAs at the left end of the row where the pieces are missing without raising a warning.
+      ```{r}
+      toy2 %>% 
+        separate(x, c("one", "two", "three"), fill = "left")
+      ```
+    </div>
+    
+    
 1.  Both `unite()` and `separate()` have a `remove` argument. What does it
     do? Why would you set it to `FALSE`?
+    
+    <div class="answer">
+    
+    The `remove` argument controls whether the original column is kept or removed from the output data frame. It is set to `TRUE` by default. We may want to set this value to `FALSE` to keep a backup of our original column prior to any transformation.
+    
+    ```{r}
+    toy1 %>% 
+      separate(x, c("one", "two", "three"), extra = "drop", remove = FALSE)
+    ```
+    
+    </div>
 
 1.  Compare and contrast `separate()` and `extract()`.  Why are there
     three variations of separation (by position, by separator, and with
     groups), but only one unite?
+    
+    <div class="answer">
+    
+    `separate()` allows to split a column into many either by position (when `sep` is numeric) or by separator (when `sep` is a separator). Similarly, `extract()` splits a column into many with *groups*, that are defined with a regular expression.
+    
+    ```{r}
+    toy3 <- tibble(x = c("aZbWc"))
+    
+    # Define separator with a regular expression with separate()
+    toy3 %>% 
+      separate(x, c("one", "two", "three"), sep = "[A-Z]")
+    
+    # Define groups with a regular expression in extract()
+    toy3 %>% 
+      extract(
+        x, 
+        c("lower_upper", "upper_lower"), 
+        regex = "([a-z][A-Z]).([A-Z][a-z])"
+        )
+    ```
+    
+    Uniting columns is more straightforward that separating them. We can easily define a separator via the `sep` argument, and determine the position of the pieces by chaging the order in which we define the columns.
+        
+    ```{r}
+    toy4 <- tibble(lower = letters[1:3], upper = LETTERS[1:3])
+    
+    toy4 %>% 
+      unite("lower_upper", lower, upper, sep = " and ")
+    
+    toy4 %>% 
+      unite("upper_lower", upper, lower, sep = " and ")
+    ```
+    
+    </div>
 
 ## Missing values
 
@@ -423,9 +694,70 @@ treatment %>%
 
 ### Exercises
 
-1.  Compare and contrast the `fill` arguments to `pivot_wider()` and `complete()`. 
+1.  Compare and contrast the `fill` arguments to `pivot_wider()` and `complete()`.
+
+    <div class="answer">
+    
+    The `fill` argument in `complete()` defines, for every column, a value to use instead of `NA` for the missing combinations. Note that it will replace both explicit and implicit missing values for with the provided value.
+    
+    ```{r}
+    # Has an explicit missing value for 2015-4, and an implicit missing value
+    # for 2016-1
+    stocks
+    
+    # Replaces all missing values from the "return" column with 0
+    stocks %>% 
+      complete(year, qtr, fill = list(return = 0))
+    ```
+    
+    The `values_fill` argument in `pivot_wider()` is also used to replace missing values, but unlike the `fill` argument in `complete`, it will only replace implicit missing values with the provided value.
+    
+    ```{r}
+    # Default behaviour. Note that the implicit missing value for 2016-1 is made
+    # explicit by the transformation.
+    stocks %>% 
+      pivot_wider(names_from = qtr, values_from = return)
+    
+    # When specifying values_fill, the implicit missing value for 2016-1 is
+    # replaced by 0, but the explicit missing value for 2015-4 remains as NA.
+    stocks %>% 
+      pivot_wider(
+        names_from = qtr, 
+        values_from = return,
+        values_fill = list(return = 0)
+        )
+    ```
+    
+    </div>
 
 1.  What does the direction argument to `fill()` do?
+    
+    <div class="answer">
+    
+    The `.direction` argument states the direction in which to fill missing values. Generally, we have:
+    
+      - `"down"`: Replace missing values with the values right above.
+      - `"downup"`: Replace missing values with the values right above. If there are leading `NA`s, then replace them with the value right below (i.e. go "up").
+      - `"up"`: Replace missing values with the values right below.
+      - `"updown"`: Replace missing values with the values right below. If there are any trailing `NA`s, then replace them with the vlaues right above (i.e. go "down").
+      
+    ```{r}
+    treatment2 <- tribble(
+      ~ person,           ~ treatment, ~response,
+      NA,                 2,           10,
+      "Derrick Whitmore", 1,           7,
+      NA,                 3,           9,
+      "Katherine Burke",  1,           4,
+      NA,                 3,           5
+    )
+    
+    fill(treatment2, person, .direction = "down")
+    fill(treatment2, person, .direction = "downup")
+    fill(treatment2, person, .direction = "up")
+    fill(treatment2, person, .direction = "updown")
+    ```
+    
+    </div>
 
 ## Case Study
 
@@ -558,15 +890,147 @@ who %>%
     check that we had the correct values. Is this reasonable? Think about
     how missing values are represented in this dataset. Are there implicit
     missing values? What's the difference between an `NA` and zero? 
+    
+    <div class="answer">
+    
+    The first thing to note here is that `who` contains both `NA` and zero values, which means that the `NA`s in this dataset indicate that the value was not *measured*, but could have likely occured. For example, most countries don't have any information prior to 1995, which most likely means that the TB cases that did happen went most likely unreported.
+    
+    ```{r}
+    who_na_counts <- who %>%
+      group_by(year) %>% 
+      summarise_at(vars(-c(country:iso3)), ~ sum(is.na(.x))) %>% 
+      ungroup() %>% 
+      pivot_longer(
+        -year, 
+        names_to = "variable", 
+        values_to = "n_country_missing"
+        )
+    
+    who_na_counts %>% 
+      ggplot(aes(
+        x = variable, 
+        y = forcats::fct_rev(factor(year)), 
+        fill = n_country_missing
+        )) +
+      geom_raster() +
+      labs(fill = "Number of \ncountries with\nmissing values") +
+      scale_fill_gradient(
+        low = "white",
+        high = "grey50"
+      ) +
+      theme(
+        axis.text.x = element_text(angle = 90, vjust = 1, hjust = 1),
+        axis.title = element_blank()
+      )
+    ```
+    
+    The decision to remove the `NA`s form the data set seems reasonable if we want to limit our analysis to a period where TB reporting was good enough to allow for cross-country comparisons. Note however that merely removing `NA`s is not sufficient. As we can see from the graph below, we would also need to be mindful of both the missingness rate across time periods and across variables. Notably, there seems to be a relatively good panel for smear positive (`sp`) TB cases dating back to 1995, however, the comparison to extrapulmonary (`ep`) or smear negative cases (`sn`) is only possible after 2006.
+    
+    Finally, the original dataset has no implicit missing values. We can check for this by verifying that the variable names contain all possible combinations of the `new`, `var`, `sex` and `age` variables.
+    
+    ```{r}
+    n_vars <- who %>% 
+      select(-c(country:year)) %>% 
+      ncol()
+    
+    combs <- expand_grid(
+      new = "new",
+      var = c("sp", "sn", "ep", "rel"),
+      sex = c("m", "f"),
+      age = c("014", "1524", "2534", "3544", "4554", "5564", "65")
+      )
+    combs
+    
+    nrow(combs) == n_vars
+    ```
+
+    </div>
 
 1.  What happens if you neglect the `mutate()` step?
     (`mutate(names_from = stringr::str_replace(key, "newrel", "new_rel"))`)
+    
+    <div class="answer">
+    
+    After the first call to `separate()`, the values with `newrel` will be split into two pieces instead of three. This will result in the TB type information to be assigned to the variable `new`, the sex and age information to the variable `var`, and the `sexage` variable to remain empty.
+    
+    ```{r}
+    who %>%
+      pivot_longer(
+        cols = new_sp_m014:newrel_f65, 
+        names_to = "key", 
+        values_to = "cases", 
+        values_drop_na = TRUE
+      ) %>% 
+      separate(key, c("new", "var", "sexage")) %>% 
+      filter(new == "newrel")
+    ```
+
+    </div>
 
 1.  I claimed that `iso2` and `iso3` were redundant with `country`. 
     Confirm this claim.
+    
+    <div class="answer">
+    
+    The claim is true. Each country has one distict value for `iso2` and `iso3`.
+    
+    ```{r}
+    who %>% 
+      distinct(country, iso2, iso3) %>% 
+      count(country, sort = TRUE)
+    ```
+    
+    </div>
 
 1.  For each country, year, and sex compute the total number of cases of 
     TB. Make an informative visualisation of the data.
+    
+    <div class="answer">
+    
+    ```{r}
+    who_tidy <- who %>%
+      pivot_longer(
+        cols = new_sp_m014:newrel_f65, 
+        names_to = "key", 
+        values_to = "cases", 
+        values_drop_na = TRUE
+      ) %>% 
+      mutate(
+        key = stringr::str_replace(key, "newrel", "new_rel")
+      ) %>%
+      separate(key, c("new", "var", "sexage")) %>% 
+      select(-new, -iso2, -iso3) %>% 
+      separate(sexage, c("sex", "age"), sep = 1)
+    
+    who_top5 <- who_tidy %>% 
+      group_by(country, year, sex) %>% 
+      summarise(total = sum(cases)) %>% 
+      ungroup() %>% 
+      group_by(country) %>% 
+      mutate(avg_per_year = sum(total) / n_distinct(year)) %>% 
+      ungroup() %>% 
+      top_frac(.05, wt = avg_per_year)
+    
+    who_top5 %>% 
+      ggplot(aes(year, total, colour = sex)) +
+      geom_line() +
+      facet_wrap(~country, labeller = label_wrap_gen(width = 19)) + 
+      labs(
+        title = "Evolution of TB cases",
+        subtitle = "Top 5% countries according to yearly average",
+        y = "Cases",
+        x = "",
+        colour = "Sex"
+      ) +
+      scale_y_continuous(labels = scales::label_number_si()) +
+      theme(
+        axis.text.x = element_text(size = 8),
+        axis.title = element_blank()
+      )
+    ```
+    
+    </div>
+    
 
 ## Non-tidy data
 
