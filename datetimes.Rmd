@@ -160,11 +160,30 @@ as_date(365 * 10 + 2)
 
 1.  What happens if you parse a string that contains invalid dates?
 
-    ```{r, eval = FALSE}
+    ```{r bananas, eval = FALSE}
     ymd(c("2010-10-10", "bananas"))
     ```
+    
+    <div class="answer">
+    
+    ```{r ref.label="bananas", eval=TRUE}
+    ```
+    
+    </div>
+    
 
 1.  What does the `tzone` argument to `today()` do? Why is it important?
+
+    <div class="answer">
+    The `tzone` argument can be used to determine today's date in another time zone. For the full list of valid values to `tzone`, see `OlsonNames()`.
+    
+    ```{r}
+    today()
+    today(tzone = "Australia/Canberra")
+    ```
+    
+    </div>
+
 
 1.  Use the appropriate lubridate function to parse each of the following dates:
 
@@ -175,6 +194,19 @@ as_date(365 * 10 + 2)
     d4 <- c("August 19 (2015)", "July 1 (2015)")
     d5 <- "12/30/14" # Dec 30, 2014
     ```
+    
+    <div class="answer">
+    
+    ```{r}
+    mdy(d1)
+    ymd(d2)
+    dmy(d3)
+    mdy(d4)
+    mdy(d5)
+    ```
+    
+    </div>
+    
 
 ## Date-time components
 
@@ -304,25 +336,214 @@ Setting larger components of a date to a constant is a powerful technique that a
 1.  How does the distribution of flight times within a day change over the 
     course of the year?
     
+    <div class="answer">
+    
+    January and Febraury seem to have a lower volume of flights, specially between 6am and 7pm. Overall, the summer months have relatively more departures irrespective of the time of day.
+    
+    ```{r}
+    flights_dt %>% 
+      mutate(
+        month = month(dep_time, label = TRUE),
+        dep_hour = update(dep_time, yday = 1)
+        ) %>% 
+      ggplot(aes(dep_hour, colour = month)) +
+      geom_freqpoly(binwidth = 60 * 60) # every hour
+    ```
+    
+    *Note:* I feel like a proper visualisation would involve stacked histograms (like in **ggridges**) or spagetti plots (like in **brolgar** ), but I will settle with this one for now.
+    
+    </div>
+    
+    
 1.  Compare `dep_time`, `sched_dep_time` and `dep_delay`. Are they consistent?
     Explain your findings.
+    
+    <div class="answer">
+    
+    Let's compute our own variable for the delay at departure (in minutes), and compare it against `dep_delay`.
+    
+    ```{r}
+    flights_delay <- flights_dt %>% 
+      mutate(
+        dep_delay2 = as.numeric(dep_time - sched_dep_time) / 60,
+        diff_delay = abs(dep_delay - dep_delay2),
+        same_delay = dep_delay == dep_delay2
+        )
+    ```
+
+    It looks like `dep_delay2` and `dep_delay` are exactly the same for most flights. When they aren't, the gap between the variables is constant.
+    
+    ```{r}
+    flights_delay %>% 
+      group_by(same_delay) %>% 
+      summarise(
+        n = n(),
+        min_diff = min(diff_delay),
+        max_diff = max(diff_delay)
+        ) %>% 
+      ungroup()
+    ```
+    
+    This gap hints to a mistake in the way the `dep_time` variable was created: it seems like the day component of the variable was set to the day of *scheduled* departure, when in reality a delayed or early flight may leave either the day before or the day after it was scheduled (e.g. think of flights around midnight).
+    
+    ```{r}
+    flights_delay %>% 
+      filter(!same_delay) %>% 
+      mutate(diff_delay = diff_delay / 60) %>% # in hours
+      select(contains("dep_time"), contains("dep_delay"), diff_delay)
+    ```
+    
+    Here is how I would go about fixing the `dep_time` variable. Correcting `arr_time` is slightly trickier because it depends on `sched_dep_time`, which itself is biased because its day component is based on the day at departure.
+    
+    ```{r, eval = FALSE}
+    flights_dt %>% 
+      mutate(dep_time = sched_dep_time + (60 * dep_delay))
+    ```
+    </div>
 
 1.  Compare `air_time` with the duration between the departure and arrival.
     Explain your findings. (Hint: consider the location of the airport.)
     
+    <div class="answer">
+    
+    I use the date-time variables `arr_time` and `dep_time` to calculate the flight duration. Note that this variable will be biased because:
+    
+    1. As mentioned above, `arr_time` and `dep_time` are flawed by construction. They were created on the basis of the variables `year`, `month` and `day`, which refer only to the scheduled departure date.
+    1. `arr_time` also needs to be corrected for the time zone of the destination airport.
+    
+    
+    ```{r}
+    dest_tz <- airports %>% 
+      select(faa, tzone)
+      
+    flights_air <- flights_dt %>% 
+      filter(!is.na(air_time)) %>% 
+      mutate(
+        duration = as.numeric(arr_time - dep_time), 
+        gap = air_time - duration
+        ) %>% 
+      inner_join(dest_tz, by = c("dest" = "faa")) %>% 
+      distinct(air_time, duration, tzone)
+    ```
+    
+    The figure below compares the flight duration (prior to any correction) against the air time, and colours the points by the time zone of the destination airport. Note that we have negative flight durations across almost all time zone clusters, which indicates that correcting for the destination time zone will not fix the underlying issues with the `duration` variable.  
+    
+    ```{r}
+    flights_air %>% 
+      ggplot(aes(air_time, duration, colour = tzone)) +
+      geom_point()
+    ```
+    
+    A closer look into each cluster shows that the bias of `duration` with respect to `air_time` very much depends on the destination time zone.
+    
+    ```{r}
+    flights_air %>% 
+      filter(duration > 0) %>% 
+      ggplot(aes(air_time, duration, colour = tzone)) +
+      geom_point(show.legend = FALSE) +
+      geom_abline(intercept = 0, slope = 1) +
+      facet_wrap(~ tzone)
+    ```
+    
+    Here are some ideas on how I would go about fixing these variables:
+    
+    - `shed_dep_time`: Set the time zone to `"America/New_York"`.
+    - `dep_time`: Add the `dep_delay` to the `sched_dep_time`.
+    - `sched_arr_time`: Add `air_time` to `sched_dep_time`, put this date-time in the time zone of the destination airport (using `force_tzs(..., tzone_out = "America/New_York"`) and extract the year, month and day components. This way we ensure that the date set for arrival will correspond to a later time than the date of departure. Use these components, the time zones and `shed_arr_time` (original in HHMM format) to create the new `shed_arr_time`.
+    - `arr_time`: Similar procedure as for `sched_arr_time`.
+    
+    </div>
+    
 1.  How does the average delay time change over the course of a day?
     Should you use `dep_time` or `sched_dep_time`? Why?
+    
+    <div class="answer">
+    
+    We should use `sched_dep_time` since `dep_time` is biased by the delay itself.
+    
+    ```{r}
+    flights_dt %>% 
+      mutate(date = update(sched_dep_time, yday = 1)) %>%
+      group_by(date) %>% 
+      summarise(dep_delay_mean = mean(dep_delay)) %>% 
+      ggplot(aes(date, dep_delay_mean)) +
+      geom_line()
+    ```
+    
+    </div>
+    
 
 1.  On what day of the week should you leave if you want to minimise the
     chance of a delay?
+    
+    <div class="answer">
+    
+    You are least likely to be delayed on a Saturday, and if you are, the median delay for that day is the shortest of the week.
+    
+    ```{r}
+    flights_dt %>% 
+      mutate(
+        wday = wday(sched_dep_time, label = TRUE),
+        delayed = dep_delay > 0
+        ) %>% 
+      group_by(wday, delayed) %>% 
+      summarise(
+        n = n(),
+        median_delay = median(dep_delay)
+      ) %>% 
+      group_by(wday) %>% 
+      mutate(prob = n / sum(n)) %>% 
+      ungroup() %>% 
+      filter(delayed) %>% 
+      arrange(prob)
+    ```
+    
+    </div>
 
 1.  What makes the distribution of `diamonds$carat` and 
     `flights$sched_dep_time` similar?
+    
+    <div class="answer">
+    
+    We observe unusual peaks at "pretty" values (i.e. round numbers, at the hour.)
+    
+    ```{r}
+    ggplot(diamonds, aes(carat)) +
+      geom_histogram(binwidth = .05)
+    
+    flights_dt %>% 
+      mutate(date = update(sched_dep_time, yday = 1)) %>% 
+      ggplot(aes(date)) +
+      geom_histogram(binwidth = 5*60) + # 5min binwidth
+      scale_x_datetime(date_breaks = "1 hour", date_labels = "%H")
+    ```
+    
+    </div>
+    
 
 1.  Confirm my hypothesis that the early departures of flights in minutes
     20-30 and 50-60 are caused by scheduled flights that leave early. 
     Hint: create a binary variable that tells you whether or not a flight 
     was delayed.
+    
+    <div class="answer">
+    
+    Yes, we observe a peak at the probability of being early for flights departing between minutes 20-30 and 50-60.
+    
+    ```{r}
+    flights_dt %>% 
+      mutate(
+        minute = minute(dep_time),
+        early = dep_delay < 0
+        ) %>% 
+      group_by(minute) %>% 
+      summarise(prob_early = mean(early)) %>% 
+      ggplot(aes(minute, prob_early)) +
+      geom_line()
+    ```
+        
+    </div>
+    
 
 ## Time spans
 
@@ -488,17 +709,94 @@ knitr::include_graphics("diagrams/datetimes-arithmetic.png")
 
 1.  Why is there `months()` but no `dmonths()`?
 
+    <div class="answer">
+    
+    Months can last 28, 29, 30 or 31 days. There is therefore too much variability in their length as to express them in seconds.
+    
+    ```{r}
+    ddays(29)
+    ddays(31)
+    ```
+    
+    </div>
+
 1.  Explain `days(overnight * 1)` to someone who has just started 
     learning R. How does it work?
+    
+    <div class="answer">
+    `overnight` is a vector of class logical, which takes only two possible values: `TRUE` or `FALSE`. When you multiply this vector by `1` you change its class to a numeric, and its values are recoded: `TRUE` becomes `1` and `FALSE` becomes `0`. The `day()` function will thus receive as input a vector of zeros and ones. For the `1`s, `day()` will return the type period that corresponds to a day, and for the `0`s, a time period of zero seconds.
+    
+    ```{r}
+    overnight <- c(TRUE, FALSE, TRUE)
+    class(overnight)
+    overnight * 1
+    class(overnight * 1)
+    days(overnight * 1)
+    ```
+    
+    </div>
 
 1.  Create a vector of dates giving the first day of every month in 2015.
     Create a vector of dates giving the first day of every month
     in the _current_ year.
 
+    <div class="answer">
+    
+    ```{r}
+    make_date(year = 2015, month = 1:12, day = 1)
+    make_date(year = year(today()), month = 1:12, day = 1)
+    ```
+    
+    </div>
+
+
 1.  Write a function that given your birthday (as a date), returns 
     how old you are in years.
+    
+    <div class="answer">
+    
+    ```{r}
+    calculate_age <- function(birthday) {
+      stopifnot(is.Date(birthday))
+      floor(as.duration(today() - birthday) / dyears(1))
+    }
+    
+    calculate_age(as_date("1992-03-04"))
+    ```
+    
+    </div>
 
 1.  Why can't `(today() %--% (today() + years(1))) / months(1)` work?
+
+    <div class="answer">
+    
+    The code "works" in the sense that it returns an answer, but "fails" in that it may give vastly different answers depending on the starting date.
+    
+    ```{r}
+    (today() %--% (today() + years(1))) / months(1)
+    
+    months_in_a_year <- function(start) {
+      start <- as_date(start)
+      (start %--% (start +  years(1))) / months(1)
+    }
+    
+    months_in_a_year("2020-03-01")
+    months_in_a_year("2020-01-31") # greater than 12 because of leap day
+    months_in_a_year("2020-02-29") # fails because 2021 is not a leap year
+    ```
+    
+    The reason for these discrepancies is because we are dividing an interval by a period, `months(1)`, which is not an exact unit of time. 
+    
+    If we want to consistently get a round number, we can use integer division (`%/%`):
+    
+    ```{r}
+    (today() %--% (today() + years(1))) %/% months(1)
+    ```
+    
+    
+    
+    </div>
+
 
 ## Time zones 
 

@@ -133,12 +133,79 @@ When working with factors, the two most common operations are changing the order
 
 1.  Explore the distribution of `rincome` (reported income). What makes the
     default bar chart hard to understand? How could you improve the plot?
+    
+    <div class="answer">
+    
+    The labels overlap in the default chart. 
+    
+    ```{r}
+    (p_income <- ggplot(gss_cat, aes(rincome)) +
+      geom_bar())
+    ```
+    
+    One way to improve it would be to flip the axes.
+    
+    ```{r}
+    p_income + coord_flip()
+    ```
+    
+    </div>
+    
 
 1.  What is the most common `relig` in this survey? What's the most
     common `partyid`?
+    
+    <div class="answer">
+    
+    ```{r}
+    gss_cat %>% 
+      count(relig, sort = TRUE) %>% # sort when counting, take 1st
+      slice(1)
+    gss_cat %>% 
+      count(partyid) %>% # count, take the top 1
+      top_n(1)
+    ```
+    
+    </div>
 
 1.  Which `relig` does `denom` (denomination) apply to? How can you find
     out with a table? How can you find out with a visualisation?
+    
+    <div class="answer">
+    
+    ```{r pairs, include=FALSE}
+    (pairs <- gss_cat %>% 
+      distinct(relig, denom) %>% 
+      count(relig, sort = TRUE))
+    ```
+    
+    At first glance, we can see that `denom` most likely applies to the `"Protestant"` because `r pairs$n[1]` levels of the `denom` factor are directly associated to `relig == "Protestant"`.
+    
+    ```{r, ref.label="pairs", results="show"}
+    ```
+    
+    We can confirm this first impression by looking at the factor levels of `denom` that are associated to other religions. As we see below, other religions are labelled as `"Not applicable"`, `"No answer"`, `"No denomination"` or `"Don't know"`.
+    
+    ```{r}
+    pairs %>% 
+      filter(n < max(n)) %>% 
+      semi_join(gss_cat, ., by = "relig") %>% 
+      distinct(relig, denom) %>% 
+      count(denom, sort = TRUE)
+    ```
+    
+    A quick way to visualise these relationships is by using dots to represent the all possible `relig`-`denom` pairs.
+    
+    ```{r fig.asp = 1/1}
+    gss_cat %>% 
+      distinct(relig, denom) %>% 
+      ggplot(aes(relig, denom)) +
+      geom_point() +
+      theme(axis.text.x = element_text(angle = 90))
+    ```
+    
+    </div>
+    
 
 ## Modifying factor order
 
@@ -203,6 +270,10 @@ ggplot(rincome_summary, aes(age, fct_relevel(rincome, "Not applicable"))) +
 
 Why do you think the average age for "Not applicable" is so high?
 
+<div class="answer">
+This could be driven by elderly adults who do not perceive income.
+</div>
+
 Another type of reordering is useful when you are colouring the lines on a plot. `fct_reorder2()` reorders the factor by the `y` values associated with the largest `x` values. This makes the plot easier to read because the line colours line up with the legend.
 
 ```{r, fig.align = "default", out.width = "50%", fig.width = 4}
@@ -233,12 +304,65 @@ gss_cat %>%
 
 1.  There are some suspiciously high numbers in `tvhours`. Is the mean a good
     summary?
+    
+    <div class="answer">
+    
+    No, it would be best to take the median. 
+    
+    ```{r}
+    summary(gss_cat$tvhours)
+    ```
+    </div>
+    
 
 1.  For each factor in `gss_cat` identify whether the order of the levels is
     arbitrary or principled.
+    
+    <div class="answer">
+    
+    Let's first have a look at the levels:
+    
+    ```{r}
+    gss_cat %>% 
+      select_if(is.factor) %>% 
+      map(levels)
+    ```
+    
+    Here is what I think:
+    
+    |Factor    |Type        |
+    |:---------|:-----------|
+    |`marital` | Arbitrary  |
+    |`race`    | Arbitrary  |
+    |`rincome` | Principled, because income levels are ordered |
+    |`partyid` | Principled, because political affiliation is ordered |
+    |`relig`   | Arbitrary  |
+    |`denom`   | Arbitrary  |
+    
+    </div>
+    
 
 1.  Why did moving "Not applicable" to the front of the levels move it to the
     bottom of the plot?
+    
+    <div class="answer">
+    
+    All factor levels have an associated integer value, which is what allows us to give them an order. When we apply `fct_relevel(rincome, "Not applicable")`, the level `"Not applicable"` becomes the factor level with the lowest associated value, as we can see below.
+    
+    ```{r}
+    gss_cat %>% 
+      select(rincome) %>% 
+      mutate(
+        rincome_val = as.numeric(rincome),
+        rincome_releved = fct_relevel(rincome, "Not applicable"),
+        rincome_releved_val = as.numeric(rincome_releved)
+        )
+    ```
+    
+    ggplot2 uses these underlying values to arrange our factors in the x or y axis. Factors with lower underlying values will be closer to the lower-left corner of the plot, which corresponds to the (0,0) point in the (x, y) coordinate plane. 
+    
+    </div>
+    
 
 ## Modifying factor levels
 
@@ -321,5 +445,37 @@ gss_cat %>%
 
 1.  How have the proportions of people identifying as Democrat, Republican, and
     Independent changed over time?
+    
+    <div class="answer">
+    
+    ```{r}
+    props <- gss_cat %>% 
+      mutate(
+        partyid = fct_collapse(
+          partyid,
+          Republican = c("Strong republican", "Not str republican"),
+          Independent = c("Ind,near rep", "Independent", "Ind,near dem"),
+          Democrat = c("Not str democrat", "Strong democrat"),
+          group_other = TRUE
+        )
+      ) %>% 
+      count(year, partyid) %>% 
+      group_by(year) %>% 
+      mutate(prop = n/sum(n)) %>% 
+      ungroup()
+    
+    props %>% 
+      ggplot(aes(year, prop, colour = fct_reorder(partyid, -prop))) +
+      geom_line()
+    ```
+    </div>
+    
 
 1.  How could you collapse `rincome` into a small set of categories?
+
+    <div class="answer">
+    
+    Similarly to my previous answer, I would manually define broader income brackets using `fct_collapse()`, and would lump all of the other factor levels by setting the `group_other` argument to `TRUE`. 
+    
+    </div>
+
