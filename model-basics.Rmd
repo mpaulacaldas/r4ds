@@ -207,6 +207,64 @@ These are exactly the same values we got with `optim()`! Behind the scenes `lm()
       y = x * 1.5 + 6 + rt(length(x), df = 2)
     )
     ```
+    
+    <div class="answer">
+    
+    Here is a visualisation of the fitted linear model on `sim1a`.
+    ```{r}
+    sim1a_mod <- lm(y ~ x, data = sim1a)
+    coef(sim1a_mod)
+    
+    ggplot(sim1a, aes(x, y)) +
+      geom_point(size = 2, colour = "grey30") + 
+      geom_abline(
+        slope = coef(sim1a_mod)[2],
+        intercept = coef(sim1a_mod)[1],
+        colour = "blue"
+        )
+    ```
+    
+    The figure below compares the parameter estimates of 1000 simulations against the true parameter values of simulated data based on the Student *t*-distribution (i.e. what this exercise asks for) and the normal distribution. As expected, the estimates for the simulations based on the *t*-student distribution can fall quite far from the true parameter values. This is because the Student *t*-distribution has heavier tails than the normal distribution, which increases the probability of drawing extreme values. The linear model exacerbates these differences because of the squared term in the RMSE.
+    
+    ```{r}
+    sim1a_rt <- function(...) {
+      tibble(
+        x = rep(1:10, each = 3),
+        y = x * 1.5 + 6 + rt(length(x), df = 2)
+      )
+    }
+    
+    sim1a_rnorm <- function(...) {
+      tibble(
+        x = rep(1:10, each = 3),
+        y = x * 1.5 + 6 + rnorm(length(x))
+      )
+    }
+    
+    sim1a_many <- tibble(
+      iteration = 1:1000,
+      t_student = map(iteration, sim1a_rt),
+      normal = map(iteration, sim1a_rnorm)
+      ) %>% 
+      pivot_longer(
+        -iteration, 
+        names_to = "distribution",
+        values_to = "data"
+        ) %>% 
+      mutate(
+        lms = map(data, ~lm(y ~ x, data = .x)),
+        a1 = map_dbl(lms, ~ coef(.x)[1]),
+        a2 = map_dbl(lms, ~ coef(.x)[2])
+      )
+    
+    ggplot(sim1a_many, aes(a1, a2)) +
+      geom_point(alpha = 1/2) +
+      geom_hline(yintercept = 1.5, colour = "red") +
+      geom_vline(xintercept = 6, colour = "red") +
+      facet_wrap(vars(distribution))
+    ```
+    
+    </div>
 
 1.  One way to make linear models more robust is to use a different distance
     measure. For example, instead of root-mean-squared distance, you could use
@@ -221,6 +279,59 @@ These are exactly the same values we got with `optim()`! Behind the scenes `lm()
     
     Use `optim()` to fit this model to the simulated data above and compare it 
     to the linear model.
+    
+    <div class="answer">
+    The slope estimate from `optim()` seems to give more weight to extreme values that to those centered around the mean.
+    ```{r}
+    sim1a_optim <- optim(c(0, 0), measure_distance, data = sim1a)
+    sim1a_optim$par
+    
+    ggplot(sim1a, aes(x, y)) +
+      geom_point(size = 2, colour = "grey30") + 
+      geom_abline(
+        slope = coef(sim1a_mod)[2],
+        intercept = coef(sim1a_mod)[1],
+        colour = "blue"
+        ) +
+      geom_abline(
+        slope = sim1a_optim$par[2],
+        intercept = sim1a_optim$par[1],
+        colour = "red"
+      )
+    ```
+    
+    This is confirmed when we compare the parameter estimates of `lm()` and `optim()` on the 1000 simulations based on Student's *t*-distribution.
+    
+    ```{r}
+    sim1b_optim <- function(data) {
+      optim(c(0, 0), measure_distance, data = data)
+    }
+    
+    sim1b_many <- sim1a_many %>% 
+      filter(distribution == "t_student") %>% 
+      rename(a1_lm = a1, a2_lm = a2) %>% 
+      mutate(
+        optim = map(data, sim1b_optim),
+        a1_optim = map_dbl(optim, ~ .x$par[1]),
+        a2_optim = map_dbl(optim, ~ .x$par[2])
+      ) %>% 
+      select(iteration, distribution, starts_with("a1"), starts_with("a2")) %>% 
+      pivot_longer(
+        -c(iteration, distribution), 
+        names_to = c("estimate", "method"), 
+        values_to = "value",
+        names_sep = "_"
+        ) %>% 
+      pivot_wider(names_from = "estimate", values_from = "value") 
+    
+    ggplot(sim1b_many, aes(a1, a2)) +
+      geom_point(alpha = 1/2) +
+      geom_hline(yintercept = 1.5, colour = "red") +
+      geom_vline(xintercept = 6, colour = "red") +
+      facet_wrap(vars(method))
+    ```
+    
+    </div>
 
 1.  One challenge with performing numerical optimisation is that it's only
     guaranteed to find one local optimum. What's the problem with optimising
@@ -231,6 +342,28 @@ These are exactly the same values we got with `optim()`! Behind the scenes `lm()
       a[1] + data$x * a[2] + a[3]
     }
     ```
+    
+    <div class="answer">
+    Conceptually, minimising `a[1] + data$x * a[2] + a[3]` is equivalent to minimising  `b + data$x * a[2]` where `b = a[1] + a[3]`. There is just one pair of values `(a[2], b)` that minimise the latter expression, but there can be many triplets that minimise the former. The `optim()` function will however return only *one* of these triplets depending on the starting point specified in `par`. 
+    
+    Note also that the parameter estimates of `a[2]` are slightly different across specifications, even though the underlying population estimate is the same. The estimates of `a[1]` and `a[2]` change considerably with respect to the starting point, though their sum remains close to `r best$par[1]`.
+    
+    Let's demonstrate with the `modelr::sim1` dataset.
+    
+    ```{r}
+    # Reminder of the results from the 2 parameter specification
+    best$par
+    
+    best3a <- optim(c(0, 0, 0), measure_distance, data = sim1)
+    best3a$par
+    
+    best3b <- optim(c(1, 0, 0), measure_distance, data = sim1)
+    best3b$par
+    
+    best3c <- optim(c(0, 0, 5), measure_distance, data = sim1)
+    best3c$par
+    ```
+    </div>
 
 ## Visualising models
 
@@ -307,15 +440,54 @@ This looks like random noise, suggesting that our model has done a good job of c
     `loess()` instead of `lm()`. How does the result compare to 
     `geom_smooth()`?
     
+    <div class="answer">
+    The result is the same, but `geom_smooth()` also prints a confidence interval around the line with fitted values.
+    ```{r}
+    sim1_loess_mod <- loess(y ~ x, data = sim1)
+    
+    sim1_loess_pred <- sim1 %>% 
+      data_grid(x) %>% 
+      add_predictions(sim1_loess_mod)
+    
+    ggplot(sim1, aes(x, y)) +
+      geom_point() +
+      geom_line(
+        data = sim1_loess_pred, 
+        aes(y = pred), 
+        colour = "red", 
+        size = 1
+        )
+    
+    ggplot(sim1, aes(x, y)) +
+      geom_point() +
+      geom_smooth()
+    ```
+    </div>
+    
 1.  `add_predictions()` is paired with `gather_predictions()` and 
     `spread_predictions()`. How do these three functions differ?
+    
+    <div class="answer">
+    When working with many models, `gather_predictions()` and `spread_predictions()` control how to store the predictions for each model in a data frame. `spread_predictions()` adds one new column for each model, making the resulting data frame wider. `gather_predictions()` makes the data frame longer by repeating the input rows for each model, and adds two columns specifying the predicted value and the model it belongs to.
+    </div>
     
 1.  What does `geom_ref_line()` do? What package does it come from?
     Why is displaying a reference line in plots showing residuals
     useful and important?
     
+    <div class="answer">
+    `geom_ref_line()` belongs to the **modelr** package. It is a simple wrapper around `ggplot2::geom_hline()` and `ggplot2::geom_vline()`. The function adds a horizontal or vertical line to the plot.
+    It is important to draw this line because it makes it easier to check if our residuals are more or less equally distributed around zero, which is an indication of a well-specified model.
+    </div>
+    
 1.  Why might you want to look at a frequency polygon of absolute residuals?
     What are the pros and cons compared to looking at the raw residuals?
+    
+    <div class="answer">
+    A frenquency polygon allows us to see if there is any systematic bias in the distribution of our residuals. This is generally hard to see by the naked eye, unless the bias is very strong and our sample is relatively small.
+    
+    One disadvantage of this approach is that it does not allow for comparison with other variables. For example, it may be useful to check the residuals against the predicted values to check for missing variable bias.
+    </div>
 
 ## Formulas and model families
 
@@ -529,6 +701,44 @@ ggplot(grid, aes(x2, pred, colour = x1, group = x1)) +
   facet_wrap(~ model)
 ```
 
+<div class="answer">
+
+`r emo::ji("bar_chart")` *Off-topic notes on ggplot2*
+
+The reason `colour = x2` won't work on its own in the graphs above is because `x2` is a continuous variable, and therefore, ggplot2 will use it to colour segments of a line but will not create different lines depending on the unique values taken by `x2`.
+
+```{r}
+ggplot(grid, aes(x1, pred, colour = x2)) + 
+  geom_line() +
+  facet_wrap(~ model)
+```
+
+Setting `group = x2` on its own *will* result in separate lines per unique value of `x2`, but these will not be coloured.
+
+```{r}
+ggplot(grid, aes(x1, pred, group = x2)) + 
+  geom_line() +
+  facet_wrap(~ model)
+```
+
+This is why we must specify `colour = x2, group = x2` in our aesthetic mappings.
+
+```{r}
+ggplot(grid, aes(x1, pred, colour = x2, group = x2)) + 
+  geom_line() +
+  facet_wrap(~ model)
+```
+
+Another alternative would have been to transform `x2` into a factor. The downside to this approach is that the legend and colour scale do not appropriately depict the continuous nature of `x2`.
+
+```{r}
+ggplot(grid, aes(x1, pred, colour = factor(x2))) + 
+  geom_line() +
+  facet_wrap(~ model)
+```
+
+</div>
+
 This shows you that interaction between two continuous variables works basically the same way as for a categorical and continuous variable. An interaction says that there's not a fixed offset: you need to consider both values of `x1` and `x2` simultaneously in order to predict `y`.
 
 You can see that even with just two continuous variables, coming up with good visualisations are hard. But that's reasonable: you shouldn't expect it will be easy to understand how three or more variables simultaneously interact! But again, we're saved a little because we're using models for exploration, and you can gradually build up your model over time. The model doesn't have to be perfect, it just has to help you reveal a little more about your data.
@@ -604,8 +814,52 @@ Notice that the extrapolation outside the range of the data is clearly bad. This
     an intercept. What happens to the model equation? What happens to the
     predictions?
     
+    <div class="answer">
+    Removing the intercept has no effect on the predictions. The intercept only changes the point of reference used in calculating the parameter estimates.
+    
+    In the traditional specification (with an intercept), one of the groups is taken as a "reference" group, and the parameter estimates report the difference between each group and the reference. The second specification (without an intercept), gives the mean of each group.
+    ```{r}
+    (mod_sim2_w_int  <- lm(y ~ x, data = sim2))
+    (mod_sim2_wo_int <- lm(y ~ x - 1, data = sim2))
+    ```
+    
+    Note that we can get the group means from the first specification too.
+    ```{r}
+    ref    <- setNames(coef(mod_sim2_w_int)[1], "xa")
+    others <- coef(mod_sim2_w_int)[-1] + ref
+    
+    c(ref, others)
+    ```
+    
+    The predicted values for both specifications are therefore equivalent.
+    ```{r}
+    sim2 %>% 
+      gather_predictions(mod_sim2_wo_int, mod_sim2_w_int) %>% 
+      ggplot(aes(x, y)) +
+      geom_point() +
+      geom_point(aes(y = pred), colour = "red", size = 4) +
+      facet_wrap(~ model)
+    ```
+    </div>
+    
 1.  Use `model_matrix()` to explore the equations generated for the models
     I fit to `sim3` and `sim4`. Why is `*` a good shorthand for interaction?
+    
+    <div class="answer">
+    This type of notation is very convinient, speacially when dealing with categorical variables since it adds interaction terms for the non-reference groups.
+    
+    `*` is a good shorthand for interaction because interactions can be represented as multiplications of dummy variables.
+    ```{r}
+    mod_no_int <- y ~ x1 + x2
+    mod_int    <- y ~ x1 * x2
+    
+    model_matrix(modelr::sim3, mod_no_int)
+    model_matrix(modelr::sim3, mod_int)
+    
+    model_matrix(modelr::sim4, mod_no_int)
+    model_matrix(modelr::sim4, mod_int)
+    ```
+    </div>
 
 1.  Using the basic principles, convert the formulas in the following two
     models into functions. (Hint: start by converting the categorical variable
@@ -615,10 +869,108 @@ Notice that the extrapolation outside the range of the data is clearly bad. This
     mod1 <- lm(y ~ x1 + x2, data = sim3)
     mod2 <- lm(y ~ x1 * x2, data = sim3)
     ```
+    
+    <div class="answer">
+    This question is not very clear. I will assume that they are asking us to create a function that returns the matrix representation of the two formulas for any data frame containing a numerical variable `x1` and a categorical variable `x2`.
+    
+    This implementation may not be the best for a package since it relies a little too much on dplyr, which has a lot of dependencies. I also think there is a smarter way to add the interaction variables at the `pivot_wider()` stage.
+    
+    ```{r, error =TRUE}
+    tidy_model_matrix <- function(data, interaction = FALSE) {
+      
+      # Assumptions on the characteristics of my data
+      stopifnot(c("x1", "x2") %in% names(data))
+      stopifnot(is.factor(data$x2))
+      stopifnot(is.numeric(data$x1))
+      
+      df <- data %>% 
+        mutate(dummy = 1) %>% 
+        pivot_wider(
+          names_from = x2, 
+          names_prefix = "x2",
+          values_from = dummy,
+          values_fill = list(dummy = 0)
+          ) %>% 
+      select(x1, starts_with("x2")) %>% 
+      select(-2)
+      
+      if (interaction) {
+        df <- df %>% 
+          mutate_at(
+            vars(starts_with("x2")),
+            list("x1" = ~ x1 * .x)
+            ) %>% 
+          rename_at(
+            vars(ends_with("_x1")), 
+            str_replace, 
+            "(.*)_x1", 
+            "x1\\:\\1"
+            )
+      }
+      
+      df %>% 
+        mutate(intercept = 1) %>% 
+        select(`(Intercept)` = intercept, everything())
+      
+    }
+    
+    tidy_model_matrix(modelr::sim3)
+    tidy_model_matrix(modelr::sim3, interaction = TRUE)
+    ```
+    
+    Here is an implementation using only base R code and `tibble::tibble()`.
+    
+    ```{r, error=TRUE}
+    base_model_matrix <- function(data, interaction = FALSE) {
+
+      stopifnot(c("x1", "x2") %in% names(data))
+      stopifnot(is.factor(data$x2))
+      stopifnot(is.numeric(data$x1))
+      
+      levs_x2 <- levels(data$x2)[-1]
+      
+      out_x2 <- vector("list", length(levs_x2))
+      names(out_x2) <- levs_x2
+      
+      for (l in levs_x2) { out_x2[[l]] <- (data$x2 == l) * 1 }
+      
+      names(out_x2) <- paste0("x2", levs_x2)
+      
+      out_x2_int <- NULL
+      
+      if (interaction) {
+        out_x2_int <- lapply(out_x2, function(x) x * data$x1)
+        names(out_x2_int) <- paste0("x1:x2", levs_x2)
+      }
+      
+      intercept_x1 <- list("(Intercept)" = rep(1, nrow(data)), "x1" = data$x1)
+      interactions <- append(out_x2, out_x2_int)
+      
+      tibble::as_tibble(append(intercept_x1, interactions))
+      
+    }
+    
+    base_model_matrix(modelr::sim3)
+    base_model_matrix(modelr::sim3, interaction = TRUE)
+    ```
+    </div>
 
 1.   For `sim4`,  which of `mod1` and `mod2` is better? I think `mod2` does a 
      slightly better job at removing patterns, but it's pretty subtle. Can you 
      come up with a plot to support my claim? 
+     
+     <div class="answer">
+     The residuals from `mod2` seem to be more evenly distributed around zero.
+     ```{r}
+     mod1 <- lm(y ~ x1 + x2, data = sim4)
+     mod2 <- lm(y ~ x1 * x2, data = sim4)
+     
+     sim4 %>% 
+      gather_residuals(mod1, mod2) %>% 
+      ggplot(aes(resid, colour = model)) +
+      geom_freqpoly(binwidth = 0.5)
+     ```
+     </div>
 
 ## Missing values
 

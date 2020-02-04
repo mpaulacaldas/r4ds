@@ -66,7 +66,7 @@ diamonds2 <- diamonds %>%
 
 Together, these changes make it easier to see the relationship between `carat` and `price`:
 
-```{r}
+```{r lcarat-vs-lprice}
 ggplot(diamonds2, aes(lcarat, lprice)) + 
   geom_hex(bins = 50)
 ```
@@ -160,17 +160,76 @@ Nothing really jumps out at me here, but it's probably worth spending time consi
 
 1.  In the plot of `lcarat` vs. `lprice`, there are some bright vertical
     strips. What do they represent?
+    
+    <div class="answer">
+    The bright vertical strips represent areas where there is a high concentration of observations. These most likely coincide with "pretty" or "rounded" values, but we would have to transform to the original scale to confirm.
+    ```{r ref.label="lcarat-vs-lprice", echo = FALSE}
+    ```
+    </div>
 
 1.  If `log(price) = a_0 + a_1 * log(carat)`, what does that say about 
     the relationship between `price` and `carat`?
     
+    <div class="answer">
+    The model assumes that there is a linear relationship in the percentage change of `carat` and `price`, i.e. a `a_1` percent change in `carat` leads to a 1% change in price.
+    </div>
+    
 1.  Extract the diamonds that have very high and very low residuals. 
     Is there anything unusual about these diamonds? Are they particularly bad
     or good, or do you think these are pricing errors?
+    
+    <div class="answer">
+    Let's define an outlier as an observation where `lresid2` is in the top or bottom 0.5% percent of the distribution.
+    
+    The plots below show that the new model still fails to capture the full effect of quality on price: the corrected price (i.e. `lresid`) is still increasing with our quality variables. This effect is even more pronounced for the outliers that are above the 99.5% quantile.
+    
+    ```{r}
+    diamonds3 <- diamonds2 %>% 
+      mutate(
+        outlier = case_when(
+          lresid2 > quantile(lresid2, 0.995) ~ "Outlier - High",
+          lresid2 < quantile(lresid2, 0.005) ~ "Outlier - Low",
+          TRUE ~ "Not an outlier"
+          )
+      )
+    
+    compare_boxplots <- function(var) {
+      ggplot(diamonds3, aes(.data[[var]], lresid)) + 
+        geom_boxplot() + 
+        facet_wrap(~ outlier)
+    }
+    
+    compare_boxplots("cut")
+    compare_boxplots("color")
+    compare_boxplots("clarity")
+    ```
+    </div>
 
 1.  Does the final model, `mod_diamond2`, do a good job of predicting
     diamond prices? Would you trust it to tell you how much to spend
     if you were buying a diamond?
+    
+    <div class="answer">
+    `mod_diamond2` is certainly better than `mod_diamond`: its residuals are more concentrated around zero and appear to be distributed randomly. There is however the problem of outliers that was mentioned above.
+    ```{r}
+    ggplot(diamonds2, aes(lcarat, lresid)) +
+      geom_hex(bins = 50) +
+      labs(title = "mod_diamond")
+    
+    ggplot(diamonds2, aes(lcarat, lresid2)) + 
+      geom_hex(bins = 50) +
+      labs(title = "mod_diamond2")
+    
+    diamonds2 %>% 
+      pivot_longer(
+        c(lresid, lresid2), 
+        names_to = "type_of_res", 
+        values_to = "res"
+        ) %>% 
+      ggplot(aes(res, colour = type_of_res)) +
+      geom_freqpoly(binwidth = 0.05)
+    ```
+    </div>
 
 ## What affects the number of daily flights?
 
@@ -282,6 +341,21 @@ daily %>%
     geom_line() +
     scale_x_date(NULL, date_breaks = "1 month", date_labels = "%b")
 ```
+
+<div class="answer">
+
+- The `NULL` argument in `scale_x_date()` removes the axis title.
+- The available formats for `date_labels` can be found in `?strtime`.
+
+```{r}
+daily %>% 
+  filter(wday == "Sat") %>% 
+  ggplot(aes(date, n)) + 
+    geom_point() + 
+    geom_line() +
+    scale_x_date(date_breaks = "1 month", date_labels = "%b")
+```
+</div>
 
 (I've used both points and lines to make it more clear what is data and what is interpolation.)
 
@@ -407,6 +481,43 @@ We see a strong pattern in the numbers of Saturday flights. This is reassuring, 
 1.  Use your Google sleuthing skills to brainstorm why there were fewer than
     expected flights on Jan 20, May 26, and Sep 1. (Hint: they all have the
     same explanation.) How would these days generalise to another year?
+    
+    <div class="answer">
+    Let's use the **timeDate** package instead of Google.
+    ```{r}
+    library(timeDate)
+    
+    holidays <- tibble(
+      us_holiday = listHolidays(pattern = "US"),
+      dateTime   = invoke_map(us_holiday, year = 2013),
+      date_chr   = map_chr(dateTime, as.character),
+      date       = ymd(date_chr), 
+      wday       = wday(date, label = TRUE)
+      ) %>% 
+    select(us_holiday, date, wday) %>% 
+    arrange(date)
+    
+    print(holidays, n = Inf)
+    ```
+    
+    It looks like these days correspond to the Sundays before Martin Luther King's day, Memorial Day and Labor Day. The exact dates of the holidays do not generalise to other years, but they always fall on a Monday. Here is an example for 2017.
+    
+    ```{r}
+    tibble(
+      us_holiday = listHolidays(pattern = "US"),
+      dateTime   = invoke_map(us_holiday, year = 2017),
+      date_chr   = map_chr(dateTime, as.character),
+      date       = ymd(date_chr), 
+      wday       = wday(date, label = TRUE)
+      ) %>% 
+    select(us_holiday, date, wday) %>% 
+    arrange(date) %>% 
+    filter(
+      us_holiday %in% c("USMLKingsBirthday", "USMemorialDay", "USLaborDay")
+      )
+    ```
+    
+    </div>
 
 1.  What do the three days with high positive residuals represent?
     How would these days generalise to another year?
@@ -415,32 +526,164 @@ We see a strong pattern in the numbers of Saturday flights. This is reassuring, 
     daily %>% 
       top_n(3, resid)
     ```
+    
+    <div class="answer">
+    They represent the weekends after Thanksgiving and Christmas. Again, the exact dates do not generalise to other years. However, the introduction of a variable flagging the weekends around holidays will most likely improve our model.
+    </div>
 
 1.  Create a new variable that splits the `wday` variable into terms, but only
     for Saturdays, i.e. it should have `Thurs`, `Fri`, but `Sat-summer`, 
     `Sat-spring`, `Sat-fall`. How does this model compare with the model with 
     every combination of `wday` and `term`?
     
+    <div class="answer">
+    It is hard to get a good view of the differences between the two models, so I will plot the difference between the residuals. 
+    ```{r}
+    daily_term <- daily %>% 
+      mutate(
+        wday_term = ifelse(
+          wday == "Sat", 
+          paste0(wday, "-", term), 
+          as.character(wday)
+          )
+        )
+    
+    mod_term <- lm(n ~ wday_term, data = daily_term)
+    
+    daily_term %>% 
+      gather_residuals(wday = mod2, wday_term = mod_term) %>% 
+      ggplot(aes(date, resid, colour = model)) +
+      geom_ref_line(h = 0) +
+      geom_line() +
+      facet_wrap(~ model) +
+      scale_x_date(NULL, date_breaks = "2 month", date_labels = "%b")
+    ```
+    
+    The new model makes better predictions for the summer months, but performs worse in the spring.
+    ```{r}
+    daily_term %>% 
+      spread_residuals(mod2, mod_term) %>% 
+      mutate(diff = mod2 - mod_term) %>% 
+      ggplot(aes(date, diff)) +
+      geom_ref_line(h = 0) +
+      geom_line()
+    ```
+    
+    </div>
+    
 1.  Create a new `wday` variable that combines the day of week, term 
     (for Saturdays), and public holidays. What do the residuals of 
     that model look like?
+    
+    <div class="answer">
+    The new model reduced the magnitude of the extreme values in the summer and winter months, but this improvement came at the cost of the accuracy of the overall predictions during the first half of the year.
+    ```{r}
+    daily_holiday <- daily %>% 
+      left_join(holidays, by = c("date", "wday")) %>% 
+      mutate_at(vars(wday), as.character) %>% 
+      mutate(
+        wday_holiday = case_when(
+          !is.na(us_holiday) ~ "Holiday",
+          wday != "Sat"      ~ wday,
+          TRUE               ~ paste0(wday, "-", as.character(term))
+        )
+      )
+    
+    mod_holiday <- lm(n ~ wday_holiday, data = daily_holiday)
+    
+    daily_holiday %>% 
+      gather_residuals(wday = mod2, wday_holiday = mod_holiday) %>% 
+      ggplot(aes(date, resid, colour = model)) +
+      geom_ref_line(h = 0) +
+      geom_line() +
+      facet_wrap(~ model) +
+      scale_x_date(NULL, date_breaks = "2 month", date_labels = "%b")
+    ```
+    
+    This is more evident when we look at the differences in residuals.
+    ```{r}
+    daily_holiday %>% 
+      spread_residuals(mod2, mod_holiday) %>% 
+      mutate(diff = mod2 - mod_holiday) %>% 
+      ggplot(aes(date, diff)) +
+      geom_ref_line(h = 0) +
+      geom_line()
+    ```
+    </div>
 
 1.  What happens if you fit a day of week effect that varies by month 
     (i.e. `n ~ wday * month`)? Why is this not very helpful? 
+    
+    <div class="answer">
+    `n ~ wday * month` introduces weekday and month fixed effects. This is equivalent to splitting up our data in `r 12 * 7` subsets of aproximately `r round(nrow(daily) / (12 * 7))` observations and running a linear model in every one of them. Such small samples yield very unreliable estimates.
+    
+    Moreover, there is no strong reason to believe that there is significant variation across months (particularly in the middle of the year) to warrant controlling for a separate month effect.
+    
+    ```{r}
+    daily %>% 
+      mutate(month = month(date, label = TRUE)) %>% 
+      ggplot(aes(month, n)) +
+      geom_boxplot()
+    ```
+    </div>
 
 1.  What would you expect the model `n ~ wday + ns(date, 5)` to look like?
     Knowing what you know about the data, why would you expect it to be
     not particularly effective?
+    
+    <div class="answer">
+    `r emo::ji("question")` I am really confused about this exercice. Including `date` is redundant because we are basically adding a day of the year fixed effect, which is already the time unit of our data. So our within-group means are what, the value of the observation? Also, why bother adding splines at this point?
+    </div>
 
 1.  We hypothesised that people leaving on Sundays are more likely to be 
     business travellers who need to be somewhere on Monday. Explore that 
     hypothesis by seeing how it breaks down based on distance and time: if 
     it's true, you'd expect to see more Sunday evening flights to places that 
     are far away.
+    
+    <div class="answer">
+    There is no indication that flights leaving on Sunday evening are catering to business travellers flying to distant locations.
+    
+    ```{r}
+    flights_dist <- flights %>% 
+      mutate(
+        date = make_date(year, month, day),
+        wday = wday(date, label = TRUE, week_start = 1),
+        pm = pm(time_hour)
+        )
+    
+    flights_dist %>% 
+      filter(wday == "Sun") %>% 
+      ggplot(aes(factor(hour), distance)) +
+      geom_boxplot()
+    ```
+    
+    This intuition is confirmed by a simple linear model with interactions between weekdays and an evening indicator variable. We do find that flights on Sunday and flights in the evening tend to travel a longer distance than those on Monday, but there we cannot say with statistical certainty that the relationship is also positive for the interaction.
+    
+    ```{r}
+    flights_dist %>% 
+      # need an unordered factor for my regression
+      mutate_at(vars(wday), factor, ordered = FALSE) %>%
+      mutate(evening = hour >= 17) %>% 
+      lm(distance ~ wday * evening, data = .) %>% 
+      summary()
+    ```
+    
+    </div>
 
 1.  It's a little frustrating that Sunday and Saturday are on separate ends
     of the plot. Write a small function to set the levels of the 
     factor so that the week starts on Monday.
+    
+    <div class="answer">
+    We can get this behaviour from the get-go by specifying the `week_start` argument in `wday()`. To change it once the variable has been created, we can use `forcats::fct_shift()`.
+    ```{r}
+    start_on_monday <- function(fct) { fct_shift(fct, 1) }
+    
+    start_on_monday(unique(daily$wday))
+    ```
+    </div>
+
 
 ## Learning more about models
 
