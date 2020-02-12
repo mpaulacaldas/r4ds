@@ -87,12 +87,51 @@ The following sections dive into the three components of an R Markdown document 
     above. How are the outputs similar? How are they different? How are
     the inputs similar? How are they different? What happens if you
     copy the YAML header from one to the other?
+    
+    <div class="answer">
+    R notebooks are a type of R markdown file. The main difference between R notebooks and the more general R markdown files regards their treatment of chunk outputs. The HTML file produced by R notebooks (`*.nb.html`) displays the contents of the chunks as they were last run in the editor. Moreover, the chunk outputs remain available even if the objects they depend on were modified in previous chunks. The HTML files produced by R markdown files are instead evaluated sequentially when we compile the whole document (or *knit* the document), and are thus better suited to ensure reproducibility of our analyses.
+    
+    For an excellent overview of the advantages and disadvantages of R notebooks with respect to R markdown files, I recommend <https://yihui.org/en/2018/09/notebook-war/>.
+    
+    Note that R notebooks can produce only HTML output, while R markdown files can produce PDF, Word and many different types of HTML output (e.g. ioslides, xaringan slides, flexdashboards).
+    
+    In practice, R markdown files and an R notebooks look the same except for the YAML header, and switch manually between output formats in the IDE.
+    
+    - R markdown
+      ```yaml
+      ---
+      title: "R Notebook"
+      output: html_notebook
+      ---
+      ```
+    - R notebooks
+      ```yaml
+      ---
+      title: "Untitled"
+      output: html_document
+      ---
+      ```
+
+    </div>
 
 1.  Create one new R Markdown document for each of the three built-in
     formats: HTML, PDF and Word. Knit each of the three documents.
     How does the output differ? How does the input differ? (You may need
     to install LaTeX in order to build the PDF output --- RStudio will
     prompt you if this is necessary.)
+    
+    <div class="answer">
+    The only difference is in the YAML header. Note that we can also specify the different output options in the YAML header of the same R markdown file.
+    ```yaml
+    ---
+    title: "Untitled"
+    output: 
+      html_document: default
+      word_document: default
+      pdf_document: default
+    ---
+    ```
+    </div>
 
 ## Text formatting with Markdown
 
@@ -111,16 +150,60 @@ The best way to learn these is simply to try them out. It will take a few days, 
     employment. Each of the sections should include a bulleted list of
     jobs/degrees. Highlight the year in bold.
     
+    <div class="answer">
+    Inspired by [William Chase's code pen](https://codepen.io/will-r-chase/pen/Owdpmv?editors=1100).
+    ```markdown
+    # Hermione Granger
+    
+    ## Education
+    - PhD in Witchcraft, **May 2006**
+    - BSc in Muggle Studies, **May 2004**
+    
+    ## Employment
+    - Tutor, Hogwarts, **2004-2008**
+    ```
+    </div>
+    
 1.  Using the R Markdown quick reference, figure out how to:
 
     1.  Add a footnote.
+        <div class="answer">
+        ```markdown
+        This is text.^[And this is a footnote]
+        ```
+        </div>
+        
     1.  Add a horizontal rule.
+        <div class="answer">
+        ```markdown
+        Text before horizontal rule.
+        
+        ***
+        
+        Text after horizontal rule.
+        ```
+        </div>
+        
     1.  Add a block quote.
+        <div class="answer">
+        ```markdown
+        Regular text.
+        
+        > Quoted text.
+        ```
+        </div>
     
 1.  Copy and paste the contents of `diamond-sizes.Rmd` from
     <https://github.com/hadley/r4ds/tree/master/rmarkdown> in to a local
     R markdown document. Check that you can run it, then add text after the 
     frequency polygon that describes its most striking features.
+    
+    <div class="answer">
+    The document renders properly. Below is my version with extra text after the frequency polygon.
+    ```{r, echo = FALSE, comment = ""}
+    cat(readr::read_file("rmarkdown/diamond-sizes_text-formatting.Rmd"))
+    ```
+    </div>
 
 ## Code chunks
 
@@ -258,6 +341,10 @@ As your caching strategies get progressively more complicated, it's a good idea 
 
 I've used the advice of [David Robinson](https://twitter.com/drob/status/738786604731490304) to name these chunks: each chunk is named after the primary object that it creates. This makes it easier to understand the `dependson` specification.
 
+<div class="answer">
+Regarding code chunk names, [Yihui's advice](https://yihui.org/en/2018/03/space-pain/) is to avoid spaces at all costs, and perhaps even underscores (`_`) as they can lead to parsing problems with LaTeX. 
+</div>
+
 ### Global options
 
 As you work more with knitr, you will discover that some of the default chunk options don't fit your needs and you want to change them. You can do this by calling `knitr::opts_chunk$set()` in a code chunk. For example, when writing books and tutorials I set:
@@ -302,23 +389,72 @@ comma(.12358124331)
 
 ### Exercises
 
+<div class="answer">
+Here is the R markdown file that incorporates all of the modifications asked in the exercises below. I explain the differences in more detail after each question.
+```{r, echo = FALSE, comment = ""}
+cat(readr::read_file("rmarkdown/diamond-sizes_code-chunks.Rmd") )
+```
+</div>
+
 1.  Add a section that explores how diamond sizes vary by cut, colour,
     and clarity. Assume you're writing a report for someone who doesn't know
     R, and instead of setting `echo = FALSE` on each chunk, set a global 
     option.
+    
+    <div class="answer">
+    In the setup chunk, we need to add:
+    ```{r, eval = FALSE}
+    knitr::opts_chunk$set(echo = FALSE)
+    ```
+    </div>
 
 1.  Download `diamond-sizes.Rmd` from
     <https://github.com/hadley/r4ds/tree/master/rmarkdown>. Add a section
     that describes the largest 20 diamonds, including a table that displays
     their most important attributes.
+    
+    <div class="answer">
+    To format the table, I used `knitr::kable()`
+    ```{r, eval = FALSE}
+    diamonds %>% 
+      arrange(desc(carat)) %>% 
+      slice(1:20) %>% 
+      group_by(cut) %>% 
+      summarise_if(is.numeric, median) %>% 
+      knitr::kable(
+        caption = "Median values for the 20 largest diamonds, by cut."
+        )
+    ```
+    
+    Another option with HTML output is to define the default print method in the YAML header:
+    ```yaml
+    ---
+    title: "Diamond sizes"
+    date: 2016-08-25
+      html_document:
+        df_print: knitr::kable
+    ---
+    ```
+    </div>
 
 1.  Modify `diamonds-sizes.Rmd` to use `comma()` to produce nicely
     formatted output. Also include the percentage of diamonds that are
     larger than 2.5 carats.
+    
+    <div class="answer">
+    - To use `comma()` we first have to define the function. I did this in the setup chunk.
+    - To format the percentage, I used `scales::percent()`.
+    </div>
 
 1.  Set up a network of chunks where `d` depends on `c` and `b`, and
     both `b` and `c` depend on `a`. Have each chunk print `lubridate::now()`,
     set `cache = TRUE`, then verify your understanding of caching.
+    
+    <div class="answer">
+    Here is what I learned about caching after playing around with the `cache` argument of the different chunks:
+    - The `dependson` argument is ignored if `cache = FALSE`.
+    - All the chunks need to be set to `cache = TRUE`. Setting `cache = TRUE` on all chunks except `a` will lead to errors: the code chunks `b`, `c` and `d` will always display the last cached result, and will not update with the new value returned by `a` on every knit.
+    </div>
 
 ## Troubleshooting
 
