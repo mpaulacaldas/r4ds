@@ -79,11 +79,80 @@ ggplot(df, aes(x, y)) +
 
 1.  Create one plot on the fuel economy data with customised `title`,
     `subtitle`, `caption`, `x`, `y`, and `colour` labels.
+    
+    <div class="answer">
+    ```{r, fig.asp = 1}
+    ggplot(mpg, aes(displ, hwy, colour = class)) +
+      geom_point() +
+      facet_wrap(~ class) +
+      labs(
+       title =  "Fuel efficiency tends to decrese with engine size",
+       subtitle = "The relationship is less clear for two seaters and mini vans",
+       x = "Engine displacement (L)",
+       y = "Highway fuel economy (mpg)",
+       caption = "Data from fueleconomy.org",
+       colour = "Car type"
+      )
+    ```
+    </div>
 
 1.  The `geom_smooth()` is somewhat misleading because the `hwy` for
     large engines is skewed upwards due to the inclusion of lightweight
     sports cars with big engines. Use your modelling tools to fit and display
     a better model.
+    
+    <div class="answer">
+    The first thing I want to do is to compare the predictions given by the `loess` method before with the predictions of a simple linear trend. My guess is that the polynomial approach of `loess` is more sensitive to extreme values.
+    
+    ```{r}
+    ggplot(mpg, aes(displ, hwy)) +
+      geom_point(aes(colour = class)) +
+      geom_smooth(se = FALSE, method = "loess") +
+      geom_smooth(se = FALSE, method = "lm", colour = "hotpink") +
+      labs(
+        title = "A linear trend is less biased by two seaters",
+        x = "Engine displacement (L)",
+        y = "Highway fuel economy (mpg)",
+        colour = "Car type"
+      )
+    ```
+    
+    I now fit a linear model for each car type to see if the negative relationship between fuel efficiency and engine size is similar across groups.
+    
+    ```{r, fig.asp = 1}
+    ggplot(mpg, aes(displ, hwy, colour = class)) +
+      geom_point(alpha = 1/3) +
+      geom_smooth(se = FALSE, method = "lm") +
+      facet_wrap(~ class) +
+      labs(
+       title =  "The linear trend is negative within each class",
+       subtitle = "The relationship is less pronounced for two seaters and mini vans",
+       x = "Engine displacement (L)",
+       y = "Highway fuel economy (mpg)",
+       colour = "Car type"
+      )
+    ```
+    
+    With this information in mind, let's fit a linear model on the entire data set, controlling for the car type. The resulting predictions are less pronounced than the trends given by the models fitted within each class, but provide a better fit than the first linear model that did not control for car type.
+    
+    ```{r, fig.asp = 1}
+    model_mpg <- lm(hwy ~ displ + factor(class), data = mpg)
+    
+    mpg %>% 
+      modelr::add_predictions(model_mpg) %>% 
+      ggplot(aes(displ, hwy)) +
+      geom_point(aes(color = class), alpha = 1/3) +
+      geom_smooth(se = FALSE, method = "lm", colour = "red") +
+      geom_line(aes(y = pred, color = class), size = 1) +
+      facet_wrap(~class) +
+      labs(
+       title =  "The FE predictions provide a better fit than a simple linear model",
+       x = "Engine displacement (L)",
+       y = "Highway fuel economy (mpg)",
+       colour = "Car type"
+      )
+    ```
+    </div>
 
 1.  Take an exploratory graphic that you've created in the last month, and add
     informative titles to make it easier for others to understand.
@@ -143,6 +212,47 @@ ggplot(mpg, aes(displ, hwy, colour = class)) +
   geom_point() +
   theme(legend.position = "none")
 ```
+
+<div class="answer">
+I am curious about the arguments passed to `ggrepel::geom_label_repel()`.
+
+- `size = 6` increases the size of the text.
+  ```{r}
+  ggplot(mpg, aes(displ, hwy, colour = class)) +
+    ggrepel::geom_label_repel(aes(label = class),
+      data = class_avg,
+      size = 6
+    ) +
+    geom_point() +
+    theme(legend.position = "none")
+  ```
+  
+- `label.size = 0` reduces the size of the label border to 0mm.
+  ```{r}
+  ggplot(mpg, aes(displ, hwy, colour = class)) +
+    ggrepel::geom_label_repel(aes(label = class),
+      data = class_avg,
+      size = 6,
+      label.size = 0
+    ) +
+    geom_point() +
+    theme(legend.position = "none")
+  ```
+  
+- `segment.color = NA` removes the colour from the line segment conecting the data point to the label. The change here is imperceptible.
+  ```{r}
+  ggplot(mpg, aes(displ, hwy, colour = class)) +
+    ggrepel::geom_label_repel(aes(label = class),
+      data = class_avg,
+      size = 6,
+      label.size = 0,
+      segment.color = NA
+    ) +
+    geom_point() +
+    theme(legend.position = "none")
+  ```
+
+</div>
 
 Alternatively, you might just want to add a single label to the plot, but you'll still need to create a data frame. Often, you want the label in the corner of the plot, so it's convenient to create a new data frame using `summarise()` to compute the maximum values of x and y.
 
@@ -222,19 +332,165 @@ The only limit is your imagination (and your patience with positioning annotatio
 
 1.  Use `geom_text()` with infinite positions to place text at the
     four corners of the plot.
+    
+    <div class="answer">
+    ```{r}
+    label_infs <- tibble(
+      displ = c(Inf, Inf, -Inf, -Inf),
+      hwy = c(Inf, -Inf, -Inf, Inf),
+      vjust = c("top", "bottom", "bottom", "top"),
+      hjust = c("right", "right", "left", "left"),
+      label = paste(vjust, hjust, sep = "-")
+    )
+    
+    ggplot(mpg, aes(displ, hwy)) +
+      geom_point() +
+      geom_text(
+        data = label_infs, 
+        aes(label = label, vjust = vjust, hjust = hjust)
+        )
+    ```
+    </div>
 
 1.  Read the documentation for `annotate()`. How can you use it to add a text
     label to a plot without having to create a tibble?
+    
+    <div class="answer">
+    You can specify the coordinates directly in the `x` and `y` arguments of `annotate()`.
+    ```{r}
+    ggplot(mpg, aes(displ, hwy)) +
+      geom_point() +
+      annotate(
+        "text", # type of annotation we want
+        x = c(4, 6),
+        y = 35, # recycled if shorter length
+        label = c("One annotation", "And another one")
+        )
+    ```
+    </div>
 
 1.  How do labels with `geom_text()` interact with faceting? How can you
     add a label to a single facet? How can you put a different label in
     each facet? (Hint: think about the underlying data.)
+    
+    <div class="answer">
+    To enable facetting, we have to add the `class` variable to the data frame passed to `geom_text()`.
+    ```{r, fig.asp = 1}
+    label_facets <- tibble(
+        displ = 5,
+        hwy = 40,
+        class = unique(mpg$class),
+        label = "All"
+      ) %>% 
+      add_row(
+        displ = 2,
+        hwy = 40,
+        class = "2seater",
+        label = "One"
+      )
+    label_facets
+    
+    ggplot(mpg, aes(displ, hwy)) +
+      geom_point() +
+      geom_text(
+        data = label_facets, 
+        aes(label = label, colour = label), 
+        hjust = "left",
+        size = 4
+        ) +
+      facet_wrap(~ class) +
+      theme(legend.position = "none")
+    ```
+    </div>
 
 1.  What arguments to `geom_label()` control the appearance of the background
     box?
+    
+    <div class="answer">
+    The `label.*` arguments control the appearance of the background box.
+    - `label.padding`: padding around the label.
+    - `label.r`: radius of rounded corners.
+    - `label.size`: size of label border.
+    
+    Note that the values of `label.padding` and `label.r` need to be defined via `grid::unit()`.
+    
+    ```{r}
+    mpg_small <- mpg %>% 
+      filter(class %in% c("subcompact", "2seater"))
+    
+    best_in_class_small <- mpg_small %>% 
+      group_by(class) %>% 
+      filter(row_number(desc(hwy)) == 1)
+    
+    skeleton <- ggplot(mpg_small, aes(displ, hwy)) +
+      geom_point(aes(colour = class)) +
+      theme(legend.position = "none")
+      
+    skeleton +
+      geom_label(
+        data = best_in_class_small,
+        aes(label = model)
+        ) +
+      labs(title = "Default")
+    
+    skeleton +
+      geom_label(
+        data = best_in_class_small,
+        aes(label = model),
+        label.padding = unit(0.5, "lines"), # double the default
+        label.r = unit(0.45, "lines"), # thrice the default
+        label.size = 0.5 # double the default
+        ) +
+      labs(
+        title = "Increase padding, 'roundness' of corners and size of the border"
+        )
+    ```
+    </div>
 
 1.  What are the four arguments to `arrow()`? How do they work? Create a series
     of plots that demonstrate the most important options.
+    
+    <div class="answer">
+    The arguments to `grid::arrow()` are:
+    - `angle`: controls the "pointiness" of the arrow head, in degrees.
+    - `length`: specifies the length of the arrow head, and needs to be defined via `grid::units()`.
+    - `ends`: indicates if an arrow head should be drawn at the `"last"`, `"first"` or `"both"` ends of the arrow.
+    - `type`: whether the arrow head is an `"open"` or `"closed"` triangle.
+    
+    Here is an example using `geom_segment()` showing these options:
+    
+    ```{r}
+    df <- tibble(
+      x = 1,
+      y = 1:3,
+      xend = 2,
+      yend = y
+    )
+    
+    ggplot(df, aes(x, y, xend = xend, yend = yend)) +
+      geom_segment(
+        arrow = arrow(
+          angle = c(10, 20, 30),
+          length = unit(c(1.5, 1, 0.5), "cm"),
+          ends = c("last", "first", "both"),
+          type = c("open", "closed", "open")
+          )
+        )
+    ```
+    
+    Here is another example using `geom_curve()` with some actual data.
+    
+    ```{r}
+    skeleton +
+      geom_label(data = best_in_class_small, aes(label = model)) +
+      geom_curve(
+        aes(x = 5.7, y = 27, xend = 2.5, yend = 44),
+        arrow = arrow(ends = "both", length = unit(0.3, "cm"))
+        ) +
+      theme(legend.position = "none")
+    ```
+    
+    </div>
 
 ## Scales
 
@@ -415,18 +671,77 @@ ggplot(df, aes(x, y)) +
 
 Note that all colour scales come in two variety: `scale_colour_x()` and `scale_fill_x()` for the `colour` and `fill` aesthetics respectively (the colour scales are available in both UK and US spellings).
 
+
 ### Exercises
 
 1.  Why doesn't the following code override the default scale?
 
-    ```{r fig.show = "hide"}
+    ```{r scale-gradient, fig.show = "hide"}
     ggplot(df, aes(x, y)) +
       geom_hex() +
       scale_colour_gradient(low = "white", high = "red") +
       coord_fixed()
     ```
+    
+    <div class="answer">
+    
+    The code chunk above returns:
+    
+    ```{r, ref.label="scale-gradient", fig.show = "hold", echo = FALSE}
+    ```
+    
+    The code doesn't work as expected because it mapped the scale gradient to the wrong aesthetic, `colour`, instead of `fill`.
+        
+    ```{r}
+    ggplot(df, aes(x, y)) +
+      geom_hex() +
+      scale_fill_gradient(low = "white", high = "red") +
+      coord_fixed()
+    ```
+    
+    </div>
 
 1.  What is the first argument to every scale? How does it compare to `labs()`?
+
+    <div class="answer">
+    The first argument to the scale functions is `name`, the name of the scale. `name` is set to `waiver()` by default, which takes the name from the first mapping used for that aesthetic. This argument is useful if we want to change or remove the default name of the scale.
+    
+    ```{r, out.width = "50%", fig.align = "default"}
+    # Left
+    ggplot(df, aes(x, y)) +
+      geom_hex() +
+      scale_fill_gradient(
+        name = "Conteo", # count, in Spanish
+        low = "white", 
+        high = "red"
+        ) +
+      coord_fixed()
+    
+    # Right
+    ggplot(df, aes(x, y)) +
+      geom_hex() +
+      scale_fill_gradient(
+        name = NULL, # remove the name
+        low = "white", 
+        high = "red"
+        ) +
+      coord_fixed()
+    ```
+    
+    `waiver()` is also the default of all the arguments in `labs()`.
+    
+    Note that the first argument to `labs()` is actually `...`, which takes a list of name-value pairs, where the names need to be an aesthetic. Similar to the scale functions, you can chose to overrite the default name or pass `NULL` to remove the label.
+    
+    ```{r}
+    ggplot(mpg, aes(displ, hwy, colour = drv)) +
+      geom_point() +
+      labs(
+        x = "Engine displacement (L)",
+        y = "Fuel efficiency (mpg)",
+        colour = NULL
+      )
+    ```
+    </div>
 
 1.  Change the display of the presidential terms by:
 
@@ -435,6 +750,47 @@ Note that all colour scales come in two variety: `scale_colour_x()` and `scale_f
     1. Labelling each term with the name of the president.
     1. Adding informative plot labels.
     1. Placing breaks every 4 years (this is trickier than it seems!).
+    
+    <div class="answer">
+    ```{r, fig.asp = 1}
+    presidential2 <- presidential %>%
+      mutate(id = 33 + row_number())
+    
+    ggplot(presidential2, aes(start, id, colour = party)) +
+      geom_point(show.legend = FALSE) +
+      geom_segment(aes(xend = end, yend = id)) +
+      ggrepel::geom_text_repel(
+        aes(label = name), 
+        hjust = "left", 
+        vjust = "top", 
+        show.legend = FALSE
+        ) +
+      scale_x_date(
+        "Term", 
+        date_breaks = "4 years",
+        date_labels = "'%y"
+        ) +
+      scale_y_continuous(
+        "President",
+        labels = scales::label_ordinal(),
+        breaks = min(presidential2$id):max(presidential2$id),
+        minor_breaks = NULL
+        ) +
+      scale_colour_manual(
+        NULL,
+        values = c(Republican = "red", Democratic = "blue")
+      ) +
+      theme(legend.position = "bottom") +
+      guides(
+        colour = guide_legend(override.aes = list(size = 4))
+        ) +
+      labs(
+        title = "Terms of 11 US presidents",
+        subtitle = "From Eisenhower to Obama",
+        caption = "Source: ggplot2 package"
+      )
+    ```
+    </div>
 
 1.  Use `override.aes` to make the legend on the following plot easier to see.
 
@@ -442,6 +798,18 @@ Note that all colour scales come in two variety: `scale_colour_x()` and `scale_f
     ggplot(diamonds, aes(carat, price)) +
       geom_point(aes(colour = cut), alpha = 1/20)
     ```
+    
+    <div class="answer">
+    ```{r}
+    ggplot(diamonds, aes(carat, price)) +
+      geom_point(aes(colour = cut), alpha = 1/20) +
+      guides(
+        colour = guide_legend(
+          override.aes = list(alpha = 1, size = 3)
+          )
+        )
+    ```
+    </div>
 
 ## Zooming
 
