@@ -113,10 +113,18 @@ If you've used R before, you might wonder why we're not using `read.csv()`. Ther
 1.  What function would you use to read a file where fields were separated with  
     "|"?
     
+    <div class="answer">
+    `read_delim(..., delim = "|")`
+    </div>
+    
 1.  Apart from `file`, `skip`, and `comment`, what other arguments do
     `read_csv()` and `read_tsv()` have in common?
     
 1.  What are the most important arguments to `read_fwf()`?
+
+    <div class="answer">
+    The most important argument is `col_positions`, which must be created using the helper functions `fwf_empty()`, `fwf_widths()` or `fwf_positions()`.
+    </div>
    
 1.  Sometimes strings in a CSV file contain commas. To prevent them from
     causing problems they need to be surrounded by a quoting character, like
@@ -128,6 +136,12 @@ If you've used R before, you might wonder why we're not using `read.csv()`. Ther
     "x,y\n1,'a,b'"
     ```
     
+    <div class="answer">
+    ```{r}
+    read_csv("x,y\n1,'a,b'", quote = "'")
+    ```
+    </div>
+    
 1.  Identify what is wrong with each of the following inline CSV files. 
     What happens when you run the code?
     
@@ -138,6 +152,34 @@ If you've used R before, you might wonder why we're not using `read.csv()`. Ther
     read_csv("a,b\n1,2\na,b")
     read_csv("a;b\n1;3")
     ```
+    
+    <div class="answer">
+    There is a missing column header.
+    ```{r}
+    read_csv("a,b\n1,2,3\n4,5,6")
+    ```
+
+    There is a missing column in the fist row, and an extra one in the second.
+    ```{r}
+    read_csv("a,b,c\n1,2\n1,2,3,4")
+    ```
+    
+    There is a missing closing quote.
+    ```{r}
+    read_csv("a,b\n\"1")
+    ```
+    
+    It looks like the column names are repeated at the end of the file, which coerces the columns to be imported with character type.
+    ```{r}
+    read_csv("a,b\n1,2\na,b")
+    ```
+    
+    Wrong separator, need to use `read_csv2()`.
+    ```{r}
+    read_csv("a;b\n1;3")
+    read_csv2("a;b\n1;3")
+    ```
+    </div>
 
 ## Parsing a vector
 
@@ -241,6 +283,13 @@ parse_number("123.456.789", locale = locale(grouping_mark = "."))
 # Used in Switzerland
 parse_number("123'456'789", locale = locale(grouping_mark = "'"))
 ```
+
+<div class="answer">
+```{r}
+# And in France
+parse_number("123 456 789", locale = locale(grouping_mark = " "))
+```
+</div>
 
 ### Strings {#readr-strings}
 
@@ -381,6 +430,10 @@ parse_date("1 janvier 2015", "%d %B %Y", locale = locale("fr"))
 
 1.  What are the most important arguments to `locale()`? 
 
+    <div class="answer">
+    From experience, the most useful ones are `grouping_mark`, `decimal_mark` and `encoding`. 
+    </div>
+
 1.  What happens if you try and set `decimal_mark` and `grouping_mark` 
     to the same character? What happens to the default value of 
     `grouping_mark` when you set `decimal_mark` to ","? What happens
@@ -395,6 +448,10 @@ parse_date("1 janvier 2015", "%d %B %Y", locale = locale("fr"))
     the settings for the types of file you read most commonly.
     
 1.  What's the difference between `read_csv()` and `read_csv2()`?
+
+    <div class="answer">
+    `read_csv()` uses colons (`,`) as separators, whereas `read_csv2()` uses semi-colons (`;`).
+    </div>
     
 1.  What are the most common encodings used in Europe? What are the
     most common encodings used in Asia? Do some googling to find out.
@@ -411,6 +468,19 @@ parse_date("1 janvier 2015", "%d %B %Y", locale = locale("fr"))
     t1 <- "1705"
     t2 <- "11:15:10.12 PM"
     ```
+    
+    <div class="answer">
+    ```{r}
+    parse_date(d1, "%B %d, %Y")
+    parse_date(d2, "%Y-%b-%d")
+    parse_date(d3, "%d-%b-%Y")
+    parse_date(d4, "%B %d (%Y)")
+    parse_date(d5, "%m/%d/%y")
+    
+    parse_time(t1, "%H%M")
+    parse_time(t2, "%I:%M:%S %p")
+    ```
+    </div>
 
 ## Parsing a file
 
@@ -554,6 +624,10 @@ There are a few other general strategies to help you parse files:
     or even a character vector of length 1 with `read_file()`. Then you
     can use the string parsing skills you'll learn later to parse
     more exotic formats.
+    
+    <div class="answer">
+    `r emo::ji("exploding_head")` How did I not know about `read_file()`?
+    </div>
 
 ## Writing to a file
 
