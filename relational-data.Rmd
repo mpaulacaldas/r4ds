@@ -82,18 +82,34 @@ For nycflights13:
 1.  Imagine you wanted to draw (approximately) the route each plane flies from
     its origin to its destination. What variables would you need? What tables
     would you need to combine?
+    
+    <div class="answer">
+    I would need the latitude and longitude of the origin and destination airports. To get this information, I would need to combine the `flights` table with `airport`.
+    </div>
 
 1.  I forgot to draw the relationship between `weather` and `airports`.
     What is the relationship and how should it appear in the diagram?
+    
+    <div class="answer">
+    `weather` and `airports` are related by the airport code, identified by the `origin` and `faa` variables.
+    </div>
 
 1.  `weather` only contains information for the origin (NYC) airports. If
     it contained weather records for all airports in the USA, what additional
     relation would it define with `flights`?
+    
+    <div class="answer">
+    The additional relation would be defined by the `dest` variable, which indicates the airport code of the destination airport.
+    </div>
 
 1.  We know that some days of the year are "special", and fewer people than
     usual fly on them. How might you represent that data as a data frame?
     What would be the primary keys of that table? How would it connect to the
     existing tables?
+    
+    <div class="answer">
+    The primary key of such a table should be the date. The date can be expressed with the `month`, `day` and `hour` variables for consistency with the `weather` and `flights` tables.
+    </div>
 
 ## Keys
 
@@ -143,13 +159,56 @@ A primary key and the corresponding foreign key in another table form a __relati
 
 1.  Add a surrogate key to `flights`.
 
+    <div class="answer">
+    ```{r}
+    flights %>% 
+      group_by(year, month, day, flight) %>% 
+      mutate(flight_day = row_number()) %>% 
+      ungroup()
+    ```
+    </div>
+
 1.  Identify the keys in the following datasets
 
     1.  `Lahman::Batting`,
+         <div class="answer">
+         ```{r}
+         Lahman::Batting %>% 
+           count(playerID, yearID, stint, sort = TRUE)
+         ```
+         </div>
     1.  `babynames::babynames`
+        <div class="answer">
+        ```{r}
+        babynames::babynames %>% 
+          count(year, name, sex, sort = TRUE)
+        ```
+        </div>
     1.  `nasaweather::atmos`
+        <div class="answer">
+        ```{r}
+        nasaweather::atmos %>% 
+          count(lat, long, year, month, sort = TRUE)
+        ```
+        </div>
     1.  `fueleconomy::vehicles`
+        <div class="answer">
+        ```{r}
+        fueleconomy::vehicles %>% 
+          count(id, sort = TRUE)
+        ```
+        </div>
     1.  `ggplot2::diamonds`
+        <div class="answer">
+        There is no primary key, and there are duplicates.
+        ```{r}
+        ggplot2::diamonds %>% 
+          group_by_all() %>% 
+          summarise(n = n()) %>% 
+          ungroup() %>% 
+          arrange(desc(n))
+        ```
+        </div>
     
     (You might need to install some packages and read some documentation.)
 
@@ -400,13 +459,87 @@ So far, the pairs of tables have always been joined by a single variable, and th
 
     You might want to use the `size` or `colour` of the points to display
     the average delay for each airport.
+    
+    <div class="answer">
+    ```{r}
+    flights %>% 
+      group_by(dest) %>% 
+      summarise(arr_delay = mean(arr_delay, na.rm = TRUE)) %>% 
+      inner_join(airports, by = c("dest" = "faa")) %>% 
+      filter(lon > -140) %>% # focus on continental US
+      ggplot(aes(lon, lat, colour = arr_delay)) +
+      borders("state") +
+      geom_point() + 
+      coord_quickmap() +
+      scale_colour_viridis_c()
+    ```
+    </div>
 
 1.  Add the location of the origin _and_ destination (i.e. the `lat` and `lon`)
     to `flights`.
+    
+    <div class="answer">
+    ```{r}
+    flights %>% 
+      left_join(airports, by = c("origin" = "faa")) %>% 
+      left_join(
+        airports, 
+        by = c("dest" = "faa"), 
+        suffix = c("_origin", "_dest") # nicer column names
+        )
+    ```
+    </div>
 
 1.  Is there a relationship between the age of a plane and its delays?
 
+    <div class="answer">
+    No, there seems to be no relationship between the age of the plane and its delays.
+    ```{r, fig.align = "default", out.width = "50%"}
+    (flights_delay <- flights %>% 
+      group_by(tailnum, year) %>% 
+      summarise_at(vars(dep_delay, arr_delay), mean, na.rm = TRUE) %>% 
+      ungroup() %>% 
+      filter(!is.na(dep_delay)))
+    
+    (age_delay <- planes %>% 
+      select(tailnum, plane_year = year) %>% 
+      filter(!is.na(plane_year)) %>% 
+      inner_join(flights_delay, by = "tailnum") %>% 
+      mutate(age = year - plane_year))
+    
+    age_delay %>% 
+      ggplot(aes(age, dep_delay)) +
+      geom_jitter(alpha = 1/3)
+    
+    age_delay %>% 
+      ggplot(aes(age, arr_delay)) +
+      geom_jitter(alpha = 1/3)
+    ```
+    </div>
+
 1.  What weather conditions make it more likely to see a delay?
+
+    <div class="answer">
+    It's hard to tell. There seems to be a slightly positive relationship between `dep_delay` and `visibility`, `dewp` and `humidity`.
+    ```{r, fig.asp = 1}
+    flights %>% 
+      group_by(year, month, day, hour, origin) %>% 
+      summarise(dep_delay = mean(dep_delay, na.rm = TRUE)) %>% 
+      left_join(
+        weather, 
+        by = c("year", "month", "day", "hour", "origin")
+        ) %>% 
+      pivot_longer(
+        temp:visib,
+        names_to = "variable", 
+        values_to = "value"
+      ) %>% 
+      filter(!is.na(value), !is.na(dep_delay)) %>% 
+      ggplot(aes(dep_delay, value)) +
+      geom_point(alpha = 1/50) +
+      facet_wrap(~ variable, scales = "free_y")
+    ```
+    </div>
 
 1.  What happened on June 13 2013? Display the spatial pattern of delays,
     and then use Google to cross-reference with the weather.
@@ -423,6 +556,25 @@ So far, the pairs of tables have always been joined by a single variable, and th
         geom_point(aes(size = n, colour = delay)) +
         coord_quickmap()
     ```
+    
+    <div class="answer">
+    ```{r}
+    june1303 <- flights %>% 
+      filter(year == 2013, month == 6, !is.na(arr_delay)) %>% 
+      group_by(dest) %>% 
+      summarise(arr_delay = mean(arr_delay)) %>% 
+      ungroup()
+    
+    june1303 %>% 
+      inner_join(airports, by = c("dest" = "faa")) %>% 
+      filter(lon > -140) %>% # focus on continental US
+      ggplot(aes(lon, lat, colour = arr_delay)) +
+      borders("state") +
+      geom_point() +
+      coord_quickmap() +
+      scale_colour_viridis_c()
+    ```
+    </div>
 
 ### Other implementations
 
@@ -513,23 +665,140 @@ flights %>%
 1.  What does it mean for a flight to have a missing `tailnum`? What do the
     tail numbers that don't have a matching record in `planes` have in common?
     (Hint: one variable explains ~90% of the problems.)
+    
+    <div class="answer">
+    The flights with a missing `tailnum` also don't have information on the departure time, arrival time, air time or delay. These are probably flights that were cancelled.
+    ```{r}
+    flights %>% 
+      filter(is.na(tailnum)) %>% 
+      select_if(anyNA) %>% 
+      summary()
+    ```
+    
+    It seems like a disproportionate number of these flights belong to the `"MQ"` and `"AA"` carriers.
+    ```{r}
+    flights %>% 
+      anti_join(planes, by = "tailnum") %>%
+      mutate_if(is.character, as.factor) %>% 
+      summary()
+    
+    flights %>% 
+      anti_join(planes, by = "tailnum") %>% 
+      summarise(
+        sum(carrier %in% c("MQ", "AA")) / n()
+        )
+    ```
+    </div>
 
 1.  Filter flights to only show flights with planes that have flown at least 100
     flights.
+    
+    <div class="answer">
+    ```{r}
+    flights %>% 
+      count(tailnum) %>% 
+      filter(n >= 100) %>% 
+      semi_join(flights, ., by = "tailnum")
+    ```
+    </div>
 
 1.  Combine `fueleconomy::vehicles` and `fueleconomy::common` to find only the
     records for the most common models.
+    
+    <div class="answer">
+    ```{r}
+    library(fueleconomy)
+    
+    nrow(vehicles)
+    
+    vehicles %>% 
+      semi_join(common, by = c("make", "model")) %>% 
+      nrow()
+    ```
+    </div>
 
 1.  Find the 48 hours (over the course of the whole year) that have the worst
     delays. Cross-reference it with the `weather` data. Can you see any
     patterns?
+    
+    <div class="answer">
+    I didn't really get this exercise.
+    
+    Anyways, here is a possible approach. I calculate the average departure delay per day. Then I average that again with the average of the day before (I know, fishy). I isolate the days where this indicator is the highest, and flag them in `weather`. Finally, I create boxplots comparing the distributions of the main variables in `weather` for the flagged and *unflagged* (is it a word?) days.
+    ```{r}
+    worst_two_days <- flights %>% 
+      group_by(year, month, day) %>% 
+      summarise(dep_delay = mean(dep_delay, na.rm = TRUE)) %>% 
+      ungroup() %>% 
+      mutate(rolling_dep_delay = (dep_delay + lag(dep_delay)) / 2) %>% 
+      filter(rolling_dep_delay == max(rolling_dep_delay, na.rm = TRUE)) %>% 
+      mutate(day = list(c(day - 1, day))) %>% 
+      unnest(day) %>% 
+      mutate(worst_two = TRUE)
+    
+    worst_two_days
+      
+    weather %>% 
+      left_join(worst_two_days, by = c("year", "month", "day")) %>% 
+      mutate_at(vars(worst_two), coalesce, FALSE) %>% 
+      pivot_longer(temp:visib) %>% 
+      ggplot(aes(name, value, color = worst_two)) +
+      geom_boxplot()
+    ```
+    </div>
 
 1.  What does `anti_join(flights, airports, by = c("dest" = "faa"))` tell you?
     What does `anti_join(airports, flights, by = c("faa" = "dest"))` tell you?
+    
+    <div class="answer">
+    `anti_join(flights, airports, by = c("dest" = "faa"))` returns information on the flights going to airports for which we have no information. 
+    
+    `anti_join(airports, flights, by = c("faa" = "dest"))` returns information on the airports that are not listed as destinations in the `flights` table.
+    </div>
 
 1.  You might expect that there's an implicit relationship between plane
     and airline, because each plane is flown by a single airline. Confirm
     or reject this hypothesis using the tools you've learned above.
+    
+    <div class="answer">
+    A `tailnum` can be associated to more than one `carrier`.
+    ```{r}
+    tailnum_carrier <- flights %>% 
+      distinct(tailnum, carrier) %>% 
+      filter(!is.na(tailnum))
+    
+    tailnum_carrier %>% 
+      count(tailnum) %>% 
+      count(n)
+    ```
+    
+    These are the airplanes that are shared by more than one airline:
+    ```{r}
+    tailnum_carrier %>% 
+      count(tailnum) %>% 
+      filter(n > 1) %>% 
+      semi_join(planes, ., by = "tailnum") %>% 
+      select(-tailnum, -year) %>% 
+      distinct()
+    ```
+    
+    It seems like the `tailnum` is not a unique identifier of a plane.
+    
+    ```{r}
+    planes %>% 
+      count(tailnum, year, sort = TRUE)
+    ```
+    
+    Therefore, airlines may not actually be "sharing" planes. Most likely, they have bought different yearly models of the same type of airplane. Here is a list of the airlines that share `tailnum` information:
+    ```{r}
+    tailnum_carrier %>% 
+      group_by(tailnum) %>% 
+      filter(n() > 1) %>% 
+      ungroup() %>% 
+      count(carrier)
+    ```
+    
+    </div>
 
 ## Join problems
 
