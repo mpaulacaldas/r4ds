@@ -7,10 +7,10 @@ jobs:
     runs-on: macOS-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@mpc-solutions
+        uses: actions/checkout@master
 
       - name: Setup R
-        uses: r-lib/actions/setup-r@mpc-solutions
+        uses: r-lib/actions/setup-r@master
 
       - name: Install pandoc and pandoc citeproc
         run: |
