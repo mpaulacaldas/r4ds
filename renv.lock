@@ -25,10 +25,10 @@
     },
     "DT": {
       "Package": "DT",
-      "Version": "0.6",
+      "Version": "0.12",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "8b0b99f1c72058d2bb9b0478b94e8d7b"
+      "Hash": "0e120603cc57e4f1d741f739aa8147ba"
     },
     "Lahman": {
       "Package": "Lahman",
