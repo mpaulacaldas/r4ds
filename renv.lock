@@ -883,10 +883,10 @@
     },
     "withr": {
       "Package": "withr",
-      "Version": "2.1.2.9000",
+      "Version": "2.1.2",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "ae04b5f46fb27f54c5ff7582e5f9edbf"
+      "Hash": "aa57ed55ff2df4bea697a07df528993d"
     },
     "xfun": {
       "Package": "xfun",
