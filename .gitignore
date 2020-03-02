@@ -12,5 +12,6 @@ libs
 *.rds
 _main.*
 bookdown*
+!.github/workflows/*
 tmp-pdfcrop-*
 figures
