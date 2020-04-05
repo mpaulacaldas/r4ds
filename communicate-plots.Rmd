@@ -80,7 +80,7 @@ ggplot(df, aes(x, y)) +
 1.  Create one plot on the fuel economy data with customised `title`,
     `subtitle`, `caption`, `x`, `y`, and `colour` labels.
     
-    <div class="answer">
+    ::: answer
     ```{r, fig.asp = 1}
     ggplot(mpg, aes(displ, hwy, colour = class)) +
       geom_point() +
@@ -94,14 +94,14 @@ ggplot(df, aes(x, y)) +
        colour = "Car type"
       )
     ```
-    </div>
+    :::
 
 1.  The `geom_smooth()` is somewhat misleading because the `hwy` for
     large engines is skewed upwards due to the inclusion of lightweight
     sports cars with big engines. Use your modelling tools to fit and display
     a better model.
     
-    <div class="answer">
+    ::: answer
     The first thing I want to do is to compare the predictions given by the `loess` method before with the predictions of a simple linear trend. My guess is that the polynomial approach of `loess` is more sensitive to extreme values.
     
     ```{r}
@@ -152,7 +152,7 @@ ggplot(df, aes(x, y)) +
        colour = "Car type"
       )
     ```
-    </div>
+    :::
 
 1.  Take an exploratory graphic that you've created in the last month, and add
     informative titles to make it easier for others to understand.
@@ -213,7 +213,7 @@ ggplot(mpg, aes(displ, hwy, colour = class)) +
   theme(legend.position = "none")
 ```
 
-<div class="answer">
+::: answer
 I am curious about the arguments passed to `ggrepel::geom_label_repel()`.
 
 - `size = 6` increases the size of the text.
@@ -252,7 +252,7 @@ I am curious about the arguments passed to `ggrepel::geom_label_repel()`.
     theme(legend.position = "none")
   ```
 
-</div>
+:::
 
 Alternatively, you might just want to add a single label to the plot, but you'll still need to create a data frame. Often, you want the label in the corner of the plot, so it's convenient to create a new data frame using `summarise()` to compute the maximum values of x and y.
 
@@ -333,7 +333,7 @@ The only limit is your imagination (and your patience with positioning annotatio
 1.  Use `geom_text()` with infinite positions to place text at the
     four corners of the plot.
     
-    <div class="answer">
+    ::: answer
     ```{r}
     label_infs <- tibble(
       displ = c(Inf, Inf, -Inf, -Inf),
@@ -350,12 +350,12 @@ The only limit is your imagination (and your patience with positioning annotatio
         aes(label = label, vjust = vjust, hjust = hjust)
         )
     ```
-    </div>
+    :::
 
 1.  Read the documentation for `annotate()`. How can you use it to add a text
     label to a plot without having to create a tibble?
     
-    <div class="answer">
+    ::: answer
     You can specify the coordinates directly in the `x` and `y` arguments of `annotate()`.
     ```{r}
     ggplot(mpg, aes(displ, hwy)) +
@@ -367,13 +367,13 @@ The only limit is your imagination (and your patience with positioning annotatio
         label = c("One annotation", "And another one")
         )
     ```
-    </div>
+    :::
 
 1.  How do labels with `geom_text()` interact with faceting? How can you
     add a label to a single facet? How can you put a different label in
     each facet? (Hint: think about the underlying data.)
     
-    <div class="answer">
+    ::: answer
     To enable facetting, we have to add the `class` variable to the data frame passed to `geom_text()`.
     ```{r, fig.asp = 1}
     label_facets <- tibble(
@@ -401,12 +401,12 @@ The only limit is your imagination (and your patience with positioning annotatio
       facet_wrap(~ class) +
       theme(legend.position = "none")
     ```
-    </div>
+    :::
 
 1.  What arguments to `geom_label()` control the appearance of the background
     box?
     
-    <div class="answer">
+    ::: answer
     The `label.*` arguments control the appearance of the background box.
     - `label.padding`: padding around the label.
     - `label.r`: radius of rounded corners.
@@ -445,12 +445,12 @@ The only limit is your imagination (and your patience with positioning annotatio
         title = "Increase padding, 'roundness' of corners and size of the border"
         )
     ```
-    </div>
+    :::
 
 1.  What are the four arguments to `arrow()`? How do they work? Create a series
     of plots that demonstrate the most important options.
     
-    <div class="answer">
+    ::: answer
     The arguments to `grid::arrow()` are:
     - `angle`: controls the "pointiness" of the arrow head, in degrees.
     - `length`: specifies the length of the arrow head, and needs to be defined via `grid::units()`.
@@ -490,7 +490,7 @@ The only limit is your imagination (and your patience with positioning annotatio
       theme(legend.position = "none")
     ```
     
-    </div>
+    :::
 
 ## Scales
 
@@ -683,7 +683,7 @@ Note that all colour scales come in two variety: `scale_colour_x()` and `scale_f
       coord_fixed()
     ```
     
-    <div class="answer">
+    ::: answer
     
     The code chunk above returns:
     
@@ -699,11 +699,11 @@ Note that all colour scales come in two variety: `scale_colour_x()` and `scale_f
       coord_fixed()
     ```
     
-    </div>
+    :::
 
 1.  What is the first argument to every scale? How does it compare to `labs()`?
 
-    <div class="answer">
+    ::: answer
     The first argument to the scale functions is `name`, the name of the scale. `name` is set to `waiver()` by default, which takes the name from the first mapping used for that aesthetic. This argument is useful if we want to change or remove the default name of the scale.
     
     ```{r, out.width = "50%", fig.align = "default"}
@@ -741,7 +741,7 @@ Note that all colour scales come in two variety: `scale_colour_x()` and `scale_f
         colour = NULL
       )
     ```
-    </div>
+    :::
 
 1.  Change the display of the presidential terms by:
 
@@ -751,7 +751,7 @@ Note that all colour scales come in two variety: `scale_colour_x()` and `scale_f
     1. Adding informative plot labels.
     1. Placing breaks every 4 years (this is trickier than it seems!).
     
-    <div class="answer">
+    ::: answer
     ```{r, fig.asp = 1}
     presidential2 <- presidential %>%
       mutate(id = 33 + row_number())
@@ -790,7 +790,7 @@ Note that all colour scales come in two variety: `scale_colour_x()` and `scale_f
         caption = "Source: ggplot2 package"
       )
     ```
-    </div>
+    :::
 
 1.  Use `override.aes` to make the legend on the following plot easier to see.
 
@@ -799,7 +799,7 @@ Note that all colour scales come in two variety: `scale_colour_x()` and `scale_f
       geom_point(aes(colour = cut), alpha = 1/20)
     ```
     
-    <div class="answer">
+    ::: answer
     ```{r}
     ggplot(diamonds, aes(carat, price)) +
       geom_point(aes(colour = cut), alpha = 1/20) +
@@ -809,7 +809,7 @@ Note that all colour scales come in two variety: `scale_colour_x()` and `scale_f
           )
         )
     ```
-    </div>
+    :::
 
 ## Zooming
 

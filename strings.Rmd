@@ -179,7 +179,7 @@ str_sort(x, locale = "haw") # Hawaiian
     they equivalent to? How do the functions differ in their handling of 
     `NA`?
     
-    <div class="answer">
+    ::: answer
     `paste()` and `paste0()` combine strings. The default in `paste()` is to combine strings using an empty space `" "` as a separator, while `paste0()` uses an empty character string `""`.
     
     ```{r}
@@ -217,12 +217,12 @@ str_sort(x, locale = "haw") # Hawaiian
     paste0("a", NA, "c")
     ```
     
-    </div>
+    :::
     
 1.  In your own words, describe the difference between the `sep` and `collapse`
     arguments to `str_c()`.
     
-    <div class="answer">
+    ::: answer
     When combining strings, `str_c()` can combine its input strings either horizontally with `sep`, or vertically with `collapse`. Here is a small tibble example that makes my last sentence easier to visualise:
     
     ```{r}
@@ -244,12 +244,12 @@ str_sort(x, locale = "haw") # Hawaiian
     str_c(who, what, sep = " ", collapse = ", ")
     ```
     
-    </div>
+    :::
 
 1.  Use `str_length()` and `str_sub()` to extract the middle character from 
     a string. What will you do if the string has an even number of characters?
     
-    <div class="answer">
+    ::: answer
     If the string has an even number of characters, I will use the letter to the left.
     
     ```{r}
@@ -259,22 +259,22 @@ str_sort(x, locale = "haw") # Hawaiian
     
     str_sub(four_fruits, i, i)
     ```
-    </div>
+    :::
 
 1.  What does `str_wrap()` do? When might you want to use it?
     
-    <div class="answer">
+    ::: answer
     `str_wrap()` breaks a long string into lines to make for prettier printing. The `width` argument determines the target length of the lines.
     ```{r}
     sentences[1] %>% 
       str_wrap(width = 30) %>% 
       cat()
     ```
-    </div>
+    :::
 
 1.  What does `str_trim()` do? What's the opposite of `str_trim()`?
     
-    <div class="answer">
+    ::: answer
     `str_trim()` removes whitespace from the start and/or end of a string.
     ```{r}
     str_trim("  Two to the left and one to the right. ")
@@ -295,13 +295,13 @@ str_sort(x, locale = "haw") # Hawaiian
     str_squish("A lot of      empty space in the middle.")
     ```
     
-    </div>
+    :::
 
 1.  Write a function that turns (e.g.) a vector `c("a", "b", "c")` into 
     the string `a, b, and c`. Think carefully about what it should do if
     given a vector of length 0, 1, or 2.
     
-    <div class="answer">
+    ::: answer
     ```{r, error = TRUE}
     combine_oxford <- function(vector) {
       
@@ -321,7 +321,7 @@ str_sort(x, locale = "haw") # Hawaiian
     combine_oxford(c("a", "b"))
     combine_oxford(c("a", "b", "c"))
     ```
-    </div>
+    :::
 
 ## Matching patterns with regular expressions
 
@@ -372,7 +372,7 @@ In this book, I'll write regular expression as `\.` and strings that represent t
 
 1.  Explain why each of these strings don't match a `\`: `"\"`, `"\\"`, `"\\\"`.
     
-    <div class="answer">
+    ::: answer
     I find this hard to explain, so let's pretend that R and stringr are people, and that they can talk to you and each other:
     - `"\"`: 
         - **R**: Okay, first character is `"`, you want to start a string, got it. Second character is `\`... understood, you want to escape whatever weird thing comes next, OK. Third character is `"`... got it! That's what you wanted to escape. Understood, let's keep going, what's next? I am waiting...
@@ -385,11 +385,11 @@ In this book, I'll write regular expression as `\.` and strings that represent t
     - `"\\\"`:
         - **R**: Again. First character, `"`. Start string. Second character, `\`. You want me to escape what's coming. Third character, `\`. Understood, escaped. Fourth character, `\`. You want me to escape something again, understood. Fifth character, `"`. A quotation mark. Yes, escaped... The string is not over. I am waiting for you, what's next?
     
-    </div>
+    :::
 
 1.  How would you match the sequence `"'\`?
 
-    <div class="answer">
+    ::: answer
     ```{r}
     sequence <- "\"'\\"
     cat(sequence)
@@ -400,12 +400,12 @@ In this book, I'll write regular expression as `\.` and strings that represent t
     # returns TRUE if the pattern is matched
     str_detect(sequence, pattern)
     ```
-    </div>
+    :::
 
 1.  What patterns will the regular expression `\..\..\..` match? 
     How would you represent it as a string?
     
-    <div class="answer">
+    ::: answer
     ```{r}
     all_should_be_matched <- c(".a.b.c", "before.A.b.C", ".@.*.!after")
     
@@ -414,7 +414,7 @@ In this book, I'll write regular expression as `\.` and strings that represent t
     
     str_detect(all_should_be_matched, pattern)
     ```
-    </div>
+    :::
 
 ### Anchors
 
@@ -445,7 +445,7 @@ You can also match the boundary between words with `\b`. I don't often use this 
 
 1.  How would you match the literal string `"$^$"`?
 
-    <div class="answer">
+    ::: answer
     ```{r}
     string <- "$^$"
     
@@ -454,44 +454,44 @@ You can also match the boundary between words with `\b`. I don't often use this 
     
     str_detect(string, pattern)
     ```
-    </div>
+    :::
 
 1.  Given the corpus of common words in `stringr::words`, create regular
     expressions that find all words that:
     
     1. Start with "y".
-        <div class="answer">
+        ::: answer
         ```{r}
         str_subset(words, "^y")
         ```
-        </div>
+        :::
         
     1. End with "x"
-        <div class="answer">
+        ::: answer
         ```{r}
         str_subset(words, "x$")
         ```
-        </div>
+        :::
     1. Are exactly three letters long. (Don't cheat by using `str_length()`!)
-        <div class="answer">
+        ::: answer
         ```{r}
         str_subset(words, "^...$")
         ```
-        </div>
+        :::
     
     1. Have seven letters or more.
-        <div class="answer">
+        ::: answer
         ```{r}
         str_subset(words, ".......")
         ```
-        </div>
+        :::
 
     Since this list is long, you might want to use the `match` argument to
     `str_view()` to show only the matching or non-matching words.
     
-    <div class="answer">
+    ::: answer
     I have been using `str_detect()` and `str_subset()` because I think there's something off with the cache. **TODO** See what is going on.
-    </div>
+    :::
 
 ### Character classes and alternatives
 
@@ -513,9 +513,9 @@ str_view(c("abc", "a.c", "a*c", "a c"), ".[*]c")
 str_view(c("abc", "a.c", "a*c", "a c"), "a[ ]")
 ```
 
-<div class="answer">
+::: answer
 `r emo::ji("tada")` I had seen the pattern in the first example *everywhere* and never really understood it until now.
-</div>
+:::
 
 This works for most (but not all) regex metacharacters: `$` `.` `|` `?` `*` `+` `(` `)` `[` `{`. Unfortunately, a few characters have special meaning even inside a character class and must be handled with backslash escapes: `]` `\` `^` and `-`.
 
@@ -525,79 +525,79 @@ You can use _alternation_ to pick between one or more alternative patterns. For 
 str_view(c("grey", "gray"), "gr(e|a)y")
 ```
 
-<div class="answer">
+::: answer
 The above sentence is a little confusing. Only one of the two patterns will be used to determine if the string is a match. 
 ```{r}
 str_detect(c("abcyz", "abxyz"), "abc|xyz")
 str_view(c("abcyz", "abxyz"), "abc|xyz")
 ```
-</div>
+:::
 
 #### Exercises
 
 1.  Create regular expressions to find all words that:
 
     1. Start with a vowel.
-       <div class="answer">
+       ::: answer
        ```{r}
        str_subset(words, "^[aeiou]")
        ```
-       </div>
+       :::
       
     1. That only contain consonants. (Hint: thinking about matching 
        "not"-vowels.)
-       <div class="answer">
+       ::: answer
        The special regular expression `*` has not been introduced at this point, but this is the only way I can think of to solve the problem.
        ```{r}
        str_subset(words, "^[^aeiou]*$")
        ```
-       </div>
+       :::
 
     1. End with `ed`, but not with `eed`.
-       <div class="answer">
+       ::: answer
        ```{r}
        str_subset(words, "[^e]ed$")
        ```
-       </div>
+       :::
     
     1. End with `ing` or `ise`.
-       <div class="answer">
+       ::: answer
        ```{r}
        str_subset(words, "i(ng|se)$")
        ```
-       </div>
+       :::
     
 1.  Empirically verify the rule "i before e except after c".
-    <div class="answer">
+    ::: answer
     The rule is false.
     ```{r}
     str_subset(words, "cie")
     ```
-    </div>
+    :::
 
 1.  Is "q" always followed by a "u"?
 
-    <div class="answer">
+    ::: answer
     Yes, it seems like it.
     ```{r}
     str_subset(words, "q[^u]")
     ```
-    </div>
+    :::
 
 1.  Write a regular expression that matches a word if it's probably written
     in British English, not American English.
     
-    <div class="answer">
+    ::: answer
     There are a couple of misses: four, hour, otherwise, raise, rise and surprise.
     ```{r}
     str_subset(words, "(our|ise|yse)$")
     ```
-    </div>
+    :::
 
 1.  Create a regular expression that will match telephone numbers as commonly
     written in your country.
     
-    <div class="answer">
+    ::: answer
     ```{r}
     fijo_colombia   <- "\\d\\d\\d \\d\\d \\d\\d"
     portable_france <- "0(6|7) \\d\\d \\d\\d \\d\\d \\d\\d"
@@ -607,7 +607,7 @@ str_view(c("abcyz", "abxyz"), "abc|xyz")
     str_detect(tels, fijo_colombia)
     str_detect(tels, portable_france)
     ```
-    </div>
+    :::
 
 ### Repetition
 
@@ -626,7 +626,7 @@ str_view(x, 'C[LX]+')
 
 Note that the precedence of these operators is high, so you can write: `colou?r` to match either American or British spellings. That means most uses will need parentheses, like `bana(na)+`.
 
-<div class="answer">
+::: answer
 The last parragraph was very confusing.
 
 What I eventually understood is that the special characters `+`, `?` and `*` will always assume that we are looking to replicate the previous letter. If we want to replicate longer patterns, we need to wrap them in parentheses.
@@ -634,7 +634,7 @@ What I eventually understood is that the special characters `+`, `?` and `*` wil
 str_view(c("bana", "banana", "bananana"), "banana+")
 str_view(c("bana", "banana", "bananana"), "bana(na)+")
 ```
-</div>
+:::
 
 You can also specify the number of matches precisely:
 
@@ -656,7 +656,7 @@ str_view(x, 'C{2,3}?')
 str_view(x, 'C[LX]+?')
 ```
 
-<div class="answer">
+::: answer
 The "lazy" thing kind of makes sense if you remember that `?` matches the pattern 0 to 1 times. 
 
 In the previous example, note that `?` overrides `+`.
@@ -665,61 +665,61 @@ In the previous example, note that `?` overrides `+`.
 str_view(x, 'C[LX]+')
 str_view(x, 'C[LX]+?')
 ```
-</div>
+:::
 
 #### Exercises
 
 1.  Describe the equivalents of `?`, `+`, `*` in `{m,n}` form.
-    <div class="answer">
+    ::: answer
     | Symbol | `{m, n}` |
     |--------|----------|
     | `?`    | `{0,1}`  |
     | `*`    | `{0,}`   |
     | `+`    | `{1,}`   |
     
-    </div>
+    :::
 
 1.  Describe in words what these regular expressions match:
     (read carefully to see if I'm using a regular expression or a string
     that defines a regular expression.)
 
     1. `^.*$`
-       <div class="answer">
+       ::: answer
        Match any word of zero or more characters.
-       </div>
+       :::
     1. `"\\{.+\\}"`
-       <div class="answer">
+       ::: answer
        Match any world of one or more characters that is wrapped by curly brackets.
-       </div>
+       :::
     1. `\d{4}-\d{2}-\d{2}`
-       <div class="answer">
+       ::: answer
        Match any sequence of four digits followed by a minus sign, two digits, another minus sign, and two other digits.
-       </div>
+       :::
     1. `"\\\\{4}"`
-       <div class="answer">
+       ::: answer
        Match exaclty four backslashes.
-       </div>
+       :::
 
 1.  Create regular expressions to find all words that:
 
     1. Start with three consonants.
-       <div class="answer">
+       ::: answer
        ```{r}
        str_subset(words, "^[^aeiou]{3}")
        ```
-       </div>
+       :::
     1. Have three or more vowels in a row.
-       <div class="answer">
+       ::: answer
        ```{r}
        str_subset(words, "[aeiou]{3,}")
        ```
-       </div>
+       :::
     1. Have two or more vowel-consonant pairs in a row.
-       <div class="answer">
+       ::: answer
        ```{r}
        str_subset(words, "([aeiou][^aeiou]){2,}")
        ```
-       </div>
+       :::
 
 1.  Solve the beginner regexp crosswords at
     <https://regexcrossword.com/challenges/beginner>.
@@ -739,53 +739,53 @@ str_view(fruit, "(..)\\1", match = TRUE)
 1.  Describe, in words, what these expressions will match:
 
     1. `(.)\1\1`
-       <div class="answer">
+       ::: answer
        Three repeated letters (e.g. a*hhh*).
-       </div>
+       :::
     1. `"(.)(.)\\2\\1"`
-       <div class="answer">
+       ::: answer
        A pair of letters followed by the inversion of the pair (e.g. **ef***fe*ct).
-       </div>
+       :::
     1. `(..)\1`
-        <div class="answer">
+        ::: answer
         A pair of letters, repeated twice (e.g. **co***co*)
-        </div>
+        :::
     1. `"(.).\\1.\\1"`
-        <div class="answer">
+        ::: answer
         Any word that contains a letter that repeats itself at every other position at least three times (e.g. **e**l**e**v**e**n)
-        </div>
+        :::
     1. `"(.)(.)(.).*\\3\\2\\1"`
-       <div class="answer">
+       ::: answer
        Any word that contains three letters and their inversion (e.g. **par**ag*rap*h)
-       </div>
+       :::
 
 1.  Construct regular expressions to match words that:
 
     1. Start and end with the same character.
-       <div class="answer">
+       ::: answer
        `^(.).*\1$`
        ```{r}
        str_subset(words, "^(.).*\\1$")
        ```
-       </div>
+       :::
     
     1. Contain a repeated pair of letters
        (e.g. "church" contains "ch" repeated twice.)
-       <div class="answer">
+       ::: answer
        `(..).*\1`
        ```{r}
        str_subset(words, "(..).*\\1")
        ```
-       </div>
+       :::
     
     1. Contain one letter repeated in at least three places
        (e.g. "eleven" contains three "e"s.)
-       <div class="answer">
+       ::: answer
        `(.).*\1.*\1`
        ```{r}
        str_subset(words, "(.).*\\1.*\\1")
        ```
-       </div>
+       :::
 
 ## Tools
 
@@ -977,7 +977,7 @@ Note the use of `str_view_all()`. As you'll shortly learn, many stringr function
     regular expression, and a combination of multiple `str_detect()` calls.
     
     1.  Find all words that start or end with `x`.
-        <div class="answer">
+        ::: answer
         ```{r}
         # One regex
         starts_or_ends_with_x <- str_detect(words, "^x|x$")
@@ -988,10 +988,10 @@ Note the use of `str_view_all()`. As you'll shortly learn, many stringr function
         
         identical(starts_or_ends_with_x, starts_with_x | ends_with_x)
         ```
-        </div>
+        :::
     
     1.  Find all words that start with a vowel and end with a consonant.
-        <div class="answer">
+        ::: answer
         ```{r}
         starts_v_ends_c <- str_detect(words, "^[aeiou].*[^aeiou]$")
         
@@ -1000,11 +1000,11 @@ Note the use of `str_view_all()`. As you'll shortly learn, many stringr function
         
         identical(starts_v_ends_c, starts_v & ends_c)
         ```
-        </div>
+        :::
     
     1.  Are there any words that contain at least one of each different
         vowel?
-        <div class="answer">
+        ::: answer
         The easiest way to check for this is to chain multiple `str_subset()` calls. This approach is convinient because as we move down the pipeline, the output of one function becomes the input of the next. As a result, we end up with a vector that satisfies *all* of the conditions specified in the pipeline.
         ```{r}
         words %>% 
@@ -1043,12 +1043,12 @@ Note the use of `str_view_all()`. As you'll shortly learn, many stringr function
         sum(str_detect(words, ugly_pattern))
         ```
         
-        </div>
+        :::
 
 1.  What word has the highest number of vowels? What word has the highest
     proportion of vowels? (Hint: what is the denominator?)
     
-    <div class="answer">
+    ::: answer
     ```{r}
     df2 <- df %>% 
       mutate(
@@ -1063,7 +1063,7 @@ Note the use of `str_view_all()`. As you'll shortly learn, many stringr function
     df2 %>% 
       filter(vowel_prop == max(vowel_prop))
     ```
-    </div>
+    :::
 
 ### Extract matches
 
@@ -1122,7 +1122,7 @@ str_extract_all(x, "[a-z]", simplify = TRUE)
     expression matched "flickered", which is not a colour. Modify the 
     regex to fix the problem.
     
-    <div class="answer">
+    ::: answer
     One way to wrap each word with a word boundry regex (`\b`). 
     ```{r}
     colour_match <- str_c("\\b", colours, "\\b", collapse = "|")
@@ -1131,12 +1131,12 @@ str_extract_all(x, "[a-z]", simplify = TRUE)
     # the "flickered" sentence is no longer picked up
     sentences[str_count(sentences, colour_match) > 1]
     ```
-    </div>
+    :::
 
 1.  From the Harvard sentences data, extract:
 
     1. The first word from each sentence.
-       <div class="answer">
+       ::: answer
        Here I am using a the `\w`, which defines a word character. [Think of it as a shortcut to `[a-zA-Z0-9_]`](https://stackoverflow.com/a/11874899). My regex also accepts `'` as a valid character. This is because some sentences begin with "It's".
        ```{r}
        head(sentences)
@@ -1145,10 +1145,10 @@ str_extract_all(x, "[a-z]", simplify = TRUE)
          str_extract("^([\\w|']+)") %>% 
          head()
        ```
-       </div>
+       :::
        
     1. All words ending in `ing`.
-       <div class="answer">
+       ::: answer
        ```{r}
        ing_pattern <- "[a-zA-Z]+ing"
        
@@ -1156,10 +1156,10 @@ str_extract_all(x, "[a-z]", simplify = TRUE)
          str_subset(ing_pattern) %>% 
          str_extract(ing_pattern)
        ```
-       </div>
+       :::
        
     1. All plurals.
-       <div class="answer">
+       ::: answer
        This is difficult because there is no simple way to distinguish between a plural noun or a verb or pronoun ending in `s`. I therefore do the next best thing which is to look for words longer than 4 letters that end in `s`. The make a condition on the length of the word to get rid of spurious matches to short, common words like `is`, `was` and `as`.
        ```{r}
        # words longer than 4 letters ending in s
@@ -1170,7 +1170,7 @@ str_extract_all(x, "[a-z]", simplify = TRUE)
          str_extract_all(pl_pattern) %>% 
          head()
        ```
-       </div>
+       :::
 
 ### Grouped matches
 
@@ -1212,7 +1212,7 @@ Like `str_extract()`, if you want all matches for each string, you'll need `str_
 1. Find all words that come after a "number" like "one", "two", "three" etc.
    Pull out both the number and the word.
    
-   <div class="answer">
+   ::: answer
    Note that here I am using [`xfun::numbers_to_words()`](https://yihui.org/xfun/#convert-numbers-to-english-words) to get the English names of the numbers. 
    ```{r}
    numbers_pattern <- 1:20 %>% 
@@ -1227,12 +1227,12 @@ Like `str_extract()`, if you want all matches for each string, you'll need `str_
      str_match_all(match_pattern) %>% 
      tail()
    ```
-   </div>
+   :::
 
 1. Find all contractions. Separate out the pieces before and after the 
    apostrophe.
    
-   <div class="answer">
+   ::: answer
    ```{r}
    contr_pattern <- "([^ ]+)'([^ ]+)"
    
@@ -1241,7 +1241,7 @@ Like `str_extract()`, if you want all matches for each string, you'll need `str_
      str_match_all(contr_pattern) %>% 
      head()
    ```
-   </div>
+   :::
 
 ### Replacing matches
 
@@ -1255,9 +1255,9 @@ str_replace_all(x, "[aeiou]", "-")
 
 With `str_replace_all()` you can perform multiple replacements by supplying a named vector:
 
-<div class="answer">
+::: answer
 `r emo::ji("exploding_head")`
-</div>
+:::
 
 ```{r}
 x <- c("1 house", "2 cars", "3 people")
@@ -1275,16 +1275,16 @@ sentences %>%
 #### Exercises
 
 1.   Replace all forward slashes in a string with backslashes.
-     <div class="answer">
+     ::: answer
      ```{r}
      "string/with/slashes" %>% 
        str_replace_all("/", "\\\\") %>% 
        cat()
      ```
-     </div>
+     :::
 
 1.   Implement a simple version of `str_to_lower()` using `replace_all()`.
-     <div class="answer">
+     ::: answer
      ```{r}
      named_vector <- setNames(letters, LETTERS)
      
@@ -1292,11 +1292,11 @@ sentences %>%
        str_replace_all(named_vector) %>% 
        head()
      ```
-     </div>
+     :::
 
 1.   Switch the first and last letters in `words`. Which of those strings
      are still words?
-     <div class="answer">
+     ::: answer
      ```{r}
      reversed <- words %>% 
        str_replace("^(.?)(.*)(.)$", "\\3\\2\\1")
@@ -1305,7 +1305,7 @@ sentences %>%
     
      intersect(reversed, words)
      ```
-     </div>
+     :::
 
 ### Splitting
 
@@ -1340,7 +1340,7 @@ fields <- c("Name: Hadley", "Country: NZ", "Age: 35")
 fields %>% str_split(": ", n = 2, simplify = TRUE)
 ```
 
-<div class="answer">
+::: answer
 Not the best example since splitting by `:` will already result in two splits at most for that vector.
 ```{r}
 fields %>% 
@@ -1349,7 +1349,7 @@ fields %>%
 fields %>% 
   str_split(": ", n = 1, simplify = TRUE)
 ```
-</div>
+:::
 
 Instead of splitting up strings by patterns, you can also split up by character, line, sentence and word `boundary()`s:
 
@@ -1365,15 +1365,15 @@ str_split(x, boundary("word"))[[1]]
 
 1.  Split up a string like `"apples, pears, and bananas"` into individual
     components.
-    <div class="answer">
+    ::: answer
     ```{r}
     "apples, pears, and bananas" %>% 
       str_split(", (and )?")
     ```
-    </div>
+    :::
     
 1.  Why is it better to split up by `boundary("word")` than `" "`?
-    <div class="answer">
+    ::: answer
     `boundary("word")` will ignore all whitespace, and won't return empty strings.
     ```{r}
     x_with_ws <- "This is a  sentence. \nAnd a new line."
@@ -1381,23 +1381,23 @@ str_split(x, boundary("word"))[[1]]
     str_split(x_with_ws, " ")
     str_split(x_with_ws, boundary("word"))
     ```
-    </div>
+    :::
 
 1.  What does splitting with an empty string (`""`) do? Experiment, and
     then read the documentation.
-    <div class="answer">
+    ::: answer
     It splits the string into every character. This is equivalent to `boundary("character")`.
     ```{r}
     str_split(sentences[1], "")
     str_split(sentences[1], boundary("character"))
     ```
-    </div>
+    :::
 
 ### Find matches
 
 `str_locate()` and `str_locate_all()` give you the starting and ending positions of each match. These are particularly useful when none of the other functions does exactly what you want. You can use `str_locate()` to find the matching pattern, `str_sub()` to extract and/or modify them.
 
-<div class="answer">
+::: answer
 ```{r}
 canoe_sentence <- sentences[1]
 
@@ -1410,7 +1410,7 @@ canoe_sentence %>%
 str_sub(canoe_sentence, start = 11, end = 15) <- "CANOE"
 canoe_sentence
 ```
-</div>
+:::
 
 ## Other types of pattern
 
@@ -1542,7 +1542,7 @@ There are three other functions you can use instead of `regex()`:
 1.  How would you find all strings containing `\` with `regex()` vs.
     with `fixed()`?
     
-    <div class="answer">
+    ::: answer
     With `regex()`, we need to escape our `\` twice: once for R, and once for the regex match. With `fixed()`, we only need to escape it once, for R.
     ```{r}
     some_slash <- c("I end with a new line\n", "I\\have\\slashes")
@@ -1551,10 +1551,10 @@ There are three other functions you can use instead of `regex()`:
     str_subset(some_slash, regex("\\\\")) %>% cat()
     str_subset(some_slash, fixed("\\")) %>% cat()
     ```
-    </div>
+    :::
 
 1.  What are the five most common words in `sentences`?
-    <div class="answer">
+    ::: answer
     ```{r}
     sentences %>% 
       str_c(collapse = " ") %>%
@@ -1564,7 +1564,7 @@ There are three other functions you can use instead of `regex()`:
       count(word, sort = TRUE) %>% 
       slice(1:5)
     ```
-    </div>
+    :::
 
 ## Other uses of regular expressions
 
@@ -1600,32 +1600,32 @@ If you find yourself struggling to do something in stringr, it's worth taking a 
 1.  Find the stringi functions that:
 
     1. Count the number of words.
-       <div class="answer">
+       ::: answer
        ```{r}
        sentences %>% 
          stringi::stri_count_words() %>% 
          head()
        ```
-       </div>
+       :::
     1. Find duplicated strings.
-       <div class="answer">
+       ::: answer
        ```{r}
        stringi::stri_duplicated(c("one", "two", "two"))
        ```
-       </div>
+       :::
     1. Generate random text.
-       <div class="answer">
+       ::: answer
        ```{r}
        stringi::stri_rand_lipsum(nparagraphs = 1)
        ```
-       </div>
+       :::
 
 1.  How do you control the language that `stri_sort()` uses for 
     sorting?
-    <div class="answer">
+    ::: answer
     You need to specify the `locale` argument. Note that this argument is actually passed via `...` to `stri_opts_collator()`, which is used to tune collation behaviour.
     ```{r}
     stringi::stri_sort(c("hladny", "chladny"), locale="pl_PL")
     stringi::stri_sort(c("hladny", "chladny"), locale="sk_SK")
     ```
-    </div>
+    :::

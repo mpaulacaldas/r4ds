@@ -113,18 +113,18 @@ If you've used R before, you might wonder why we're not using `read.csv()`. Ther
 1.  What function would you use to read a file where fields were separated with  
     "|"?
     
-    <div class="answer">
+    ::: answer
     `read_delim(..., delim = "|")`
-    </div>
+    :::
     
 1.  Apart from `file`, `skip`, and `comment`, what other arguments do
     `read_csv()` and `read_tsv()` have in common?
     
 1.  What are the most important arguments to `read_fwf()`?
 
-    <div class="answer">
+    ::: answer
     The most important argument is `col_positions`, which must be created using the helper functions `fwf_empty()`, `fwf_widths()` or `fwf_positions()`.
-    </div>
+    :::
    
 1.  Sometimes strings in a CSV file contain commas. To prevent them from
     causing problems they need to be surrounded by a quoting character, like
@@ -136,11 +136,11 @@ If you've used R before, you might wonder why we're not using `read.csv()`. Ther
     "x,y\n1,'a,b'"
     ```
     
-    <div class="answer">
+    ::: answer
     ```{r}
     read_csv("x,y\n1,'a,b'", quote = "'")
     ```
-    </div>
+    :::
     
 1.  Identify what is wrong with each of the following inline CSV files. 
     What happens when you run the code?
@@ -153,7 +153,7 @@ If you've used R before, you might wonder why we're not using `read.csv()`. Ther
     read_csv("a;b\n1;3")
     ```
     
-    <div class="answer">
+    ::: answer
     There is a missing column header.
     ```{r}
     read_csv("a,b\n1,2,3\n4,5,6")
@@ -179,7 +179,7 @@ If you've used R before, you might wonder why we're not using `read.csv()`. Ther
     read_csv("a;b\n1;3")
     read_csv2("a;b\n1;3")
     ```
-    </div>
+    :::
 
 ## Parsing a vector
 
@@ -284,12 +284,12 @@ parse_number("123.456.789", locale = locale(grouping_mark = "."))
 parse_number("123'456'789", locale = locale(grouping_mark = "'"))
 ```
 
-<div class="answer">
+::: answer
 ```{r}
 # And in France
 parse_number("123 456 789", locale = locale(grouping_mark = " "))
 ```
-</div>
+:::
 
 ### Strings {#readr-strings}
 
@@ -430,9 +430,9 @@ parse_date("1 janvier 2015", "%d %B %Y", locale = locale("fr"))
 
 1.  What are the most important arguments to `locale()`? 
 
-    <div class="answer">
+    ::: answer
     From experience, the most useful ones are `grouping_mark`, `decimal_mark` and `encoding`. 
-    </div>
+    :::
 
 1.  What happens if you try and set `decimal_mark` and `grouping_mark` 
     to the same character? What happens to the default value of 
@@ -449,9 +449,9 @@ parse_date("1 janvier 2015", "%d %B %Y", locale = locale("fr"))
     
 1.  What's the difference between `read_csv()` and `read_csv2()`?
 
-    <div class="answer">
+    ::: answer
     `read_csv()` uses colons (`,`) as separators, whereas `read_csv2()` uses semi-colons (`;`).
-    </div>
+    :::
     
 1.  What are the most common encodings used in Europe? What are the
     most common encodings used in Asia? Do some googling to find out.
@@ -469,7 +469,7 @@ parse_date("1 janvier 2015", "%d %B %Y", locale = locale("fr"))
     t2 <- "11:15:10.12 PM"
     ```
     
-    <div class="answer">
+    ::: answer
     ```{r}
     parse_date(d1, "%B %d, %Y")
     parse_date(d2, "%Y-%b-%d")
@@ -480,7 +480,7 @@ parse_date("1 janvier 2015", "%d %B %Y", locale = locale("fr"))
     parse_time(t1, "%H%M")
     parse_time(t2, "%I:%M:%S %p")
     ```
-    </div>
+    :::
 
 ## Parsing a file
 
@@ -625,9 +625,9 @@ There are a few other general strategies to help you parse files:
     can use the string parsing skills you'll learn later to parse
     more exotic formats.
     
-    <div class="answer">
+    ::: answer
     `r emo::ji("exploding_head")` How did I not know about `read_file()`?
-    </div>
+    :::
 
 ## Writing to a file
 

@@ -84,47 +84,47 @@ The rest of this chapter will show you how to complete and extend this template 
 
 1.  Run `ggplot(data = mpg)`. What do you see?
 
-    <div class="answer">
+    ::: answer
     ```{r}
     ggplot(data = mpg)
     ```
-    </div>
+    :::
 
 1.  How many rows are in `mpg`? How many columns?
 
-    <div class="answer">
+    ::: answer
     ```{r}
     nrow(mpg)
     ncol(mpg)
     ```
-    </div>
+    :::
 
 1.  What does the `drv` variable describe?  Read the help for `?mpg` to find
     out.
     
-    <div class="answer">
+    ::: answer
     The `drv` variable describes the type of drive: font-wheel drive, rear-wheel drive or four-wheel drive.
-    </div>
+    :::
      
 1.  Make a scatterplot of `hwy` vs `cyl`.
 
-    <div class="answer">
+    ::: answer
     ```{r}
     ggplot(mpg, aes(hwy, cyl)) +
       geom_point()
     ```
-    </div>
+    :::
 
 1.  What happens if you make a scatterplot of `class` vs `drv`? Why is
     the plot not useful?
     
-    <div class="answer">
+    ::: answer
     The plot is not useful because it only shows the `class`/`drive` pairs that are available in the data, but gives no information about their relative frequency.
     ```{r}
     ggplot(mpg, aes(class, drv)) +
       geom_point()
     ```
-    </div>
+    :::
 
 ## Aesthetic mappings
 
@@ -233,13 +233,13 @@ ggplot(shapes, aes(x, y)) +
       geom_point(mapping = aes(x = displ, y = hwy, color = "blue"))
     ```
     
-    <div class="answer">
+    ::: answer
     `colour` needs to be set outside of `aes()`.
     ```{r}
     ggplot(data = mpg) + 
       geom_point(mapping = aes(x = displ, y = hwy), color = "blue")
     ```
-    </div>
+    :::
     
 1.  Which variables in `mpg` are categorical? Which variables are continuous? 
     (Hint: type `?mpg` to read the documentation for the dataset). How
@@ -249,7 +249,7 @@ ggplot(shapes, aes(x, y)) +
     these aesthetics behave differently for categorical vs. continuous
     variables? 
     
-    <div class="answer">
+    ::: answer
     `colour` returns a discrete or continuous palette with respect to the type variable.
     
     ```{r, out.width = "50%", fig.align = "default"}
@@ -283,22 +283,22 @@ ggplot(shapes, aes(x, y)) +
       geom_point(mapping = aes(x = displ, y = hwy, shape = class))
     ```
     
-    </div>
+    :::
     
 1.  What happens if you map the same variable to multiple aesthetics?
 
-    <div class="answer">
+    ::: answer
     The variable is used in all the aesthetics.
     ```{r}
     ggplot(data = mpg) +
       geom_point(mapping = aes(x = displ, y = hwy, shape = drv, color = drv))
     ```
-    </div>
+    :::
 
 1.  What does the `stroke` aesthetic do? What shapes does it work with?
     (Hint: use `?geom_point`)
     
-    <div class="answer">
+    ::: answer
     The `stroke` aesthetic modifies the width of the border for the shapes (0-14) and (21-24) shown in Figure \@ref(fig:shapes).
     ```{r, out.width = "50%", fig.align = "default"}
     # left: default stroke
@@ -309,18 +309,18 @@ ggplot(shapes, aes(x, y)) +
     ggplot(data = mpg) +
       geom_point(mapping = aes(x = displ, y = hwy), shape = 23, stroke = 3)
     ```
-    </div>
+    :::
     
 1.  What happens if you map an aesthetic to something other than a variable 
     name, like `aes(colour = displ < 5)`?  Note, you'll also need to specify x and y.
     
-    <div class="answer">
+    ::: answer
     It creates a dummy variable that is passed to the aesthetic.
     ```{r}
     ggplot(data = mpg) +
       geom_point(mapping = aes(x = displ, y = hwy, color = displ < 5))
     ```
-    </div>
+    :::
 
 ## Common problems
 
@@ -365,14 +365,14 @@ If you prefer to not facet in the rows or columns dimension, use a `.` instead o
 
 1.  What happens if you facet on a continuous variable?
 
-    <div class="answer">
+    ::: answer
     ggplot2 will carry out the operation, but we are most likely going to end up with a plot that is not very inforamative because the data is spread out into too many categories. We also lose valuable information on the *level* of the facetting variable.
     ```{r}
     ggplot(data = mpg) +
       geom_point(mapping = aes(x = displ, y = hwy)) +
       facet_wrap(~ cty)
     ```
-    </div>
+    :::
 
 1.  What do the empty cells in plot with `facet_grid(drv ~ cyl)` mean?
     How do they relate to this plot?
@@ -382,11 +382,11 @@ If you prefer to not facet in the rows or columns dimension, use a `.` instead o
       geom_point(mapping = aes(x = drv, y = cyl))
     ```
     
-    <div class="answer">
+    ::: answer
     The empty cells mean that certain combinations of `drv` and `cyl` are not available in the data. This particular piece of information can be inferred from the plot below.
     ```{r, ref.label = "pairs-drv-cyl", eval = TRUE}
     ```
-    </div>
+    :::
 
 1.  What plots does the following code make? What does `.` do?
 
@@ -400,12 +400,12 @@ If you prefer to not facet in the rows or columns dimension, use a `.` instead o
       facet_grid(. ~ cyl)
     ```
     
-    <div class="answer">
+    ::: answer
     The first piece of code creates three facets with respect to the values of `drv` and places them as rows in the grid. The second plot organises the facets as columns instead. The `.` serves to indicate whether to let go of the rows or columns in our grid.
     
     ```{r, ref.label = "grid-dot", echo = FALSE, out.width = "50%", fig.align = "default", fig.asp = 1}
     ```
-    </div>
+    :::
 
 1.  Take the first faceted plot in this section:
 
@@ -419,7 +419,7 @@ If you prefer to not facet in the rows or columns dimension, use a `.` instead o
     What are the disadvantages? How might the balance change if you had a 
     larger dataset?
     
-    <div class="answer">
+    ::: answer
     Facetting makes it easier to see the underlying trends in each group.
     ```{r, ref.label = "facet-class", eval = TRUE}
     ```
@@ -430,22 +430,22 @@ If you prefer to not facet in the rows or columns dimension, use a `.` instead o
     ggplot(data = mpg) + 
       geom_point(mapping = aes(x = displ, y = hwy, colour = class))
     ```
-    </div>
+    :::
     
 1.  Read `?facet_wrap`. What does `nrow` do? What does `ncol` do? What other
     options control the layout of the individual panels? Why doesn't
     `facet_grid()` have `nrow` and `ncol` arguments?
     
-    <div class="answer">
+    ::: answer
     `nrow` and `ncol` define the number of rows or columns of the grid.
     
     `facet_grid()` does not have these arguments because the number of columns and rows is determined by the number of unique values of the variables specified by the user.
-    </div>
+    :::
 
 1.  When using `facet_grid()` you should usually put the variable with more
     unique levels in the columns. Why?
     
-    <div class="answer">
+    ::: answer
     Figures generally have more horizontal than vertical space, so it makes sense to put the variable with more unique levels in the columns.
     ```{r, out.width = "50%", fig.align = "default"}
     # left, better
@@ -458,7 +458,7 @@ If you prefer to not facet in the rows or columns dimension, use a `.` instead o
       geom_point(mapping = aes(x = displ, y = hwy)) +
       facet_grid(cyl ~ drv)
     ```
-    </div>
+    :::
 
 ## Geometric objects
 
@@ -564,12 +564,12 @@ ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) +
 1.  What geom would you use to draw a line chart? A boxplot? 
     A histogram? An area chart?
     
-    <div class="answer">
+    ::: answer
     - Line chart: `geom_line()`
     - Box plot: `geom_boxplot()`
     - Histogram: `geom_histogram()`
     - Area chart: `geom_area()`
-    </div>
+    :::
 
 1.  Run this code in your head and predict what the output will look like.
     Then, run the code in R and check your predictions.
@@ -580,15 +580,15 @@ ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) +
       geom_smooth(se = FALSE)
     ```
     
-    <div class="answer">
+    ::: answer
     ```{r, ref.label = "scatter-color-smooth", eval = TRUE, echo = FALSE, message = FALSE}
     ```
-    </div>
+    :::
 
 1.  What does `show.legend = FALSE` do?  What happens if you remove it?  
     Why do you think I used it earlier in the chapter?
     
-    <div class="answer">
+    ::: answer
     `show.legend = FALSE` removes the legend for a given geom layer. For example, the code below removes the legend for the coloured dots, but not for the coloured lines.
     ```{r, message = FALSE}
     ggplot(data = mpg, mapping = aes(x = displ, y = hwy, color = drv)) + 
@@ -615,13 +615,13 @@ ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) +
       geom_smooth(se = FALSE)
     ```
     
-    </div>
+    :::
 
 1.  What does the `se` argument to `geom_smooth()` do?
 
-    <div class="answer">
+    ::: answer
     It removes the grey area around the trend line that represents the confidence interval.
-    </div>
+    :::
 
 
 1.  Will these two graphs look different? Why/why not?
@@ -636,11 +636,11 @@ ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) +
       geom_smooth(data = mpg, mapping = aes(x = displ, y = hwy))
     ```
     
-    <div class="answer">
+    ::: answer
     They will look exactly the same because they share the same data and aesthetic mappings in every layer.
     ```{r ref.label = "samesies", eval =TRUE, out.width = "50%", fig.align = "default", message = FALSE}
     ```
-    </div>
+    :::
 
 1.  Recreate the R code necessary to generate the following graphs.
     
@@ -665,7 +665,7 @@ ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) +
       geom_point(aes(colour = drv))
     ```
     
-    <div class="answer">
+    ::: answer
     The key to prevent a differtiated line colours and a legend is to pass `drv` to the `group` aesthetic.
     ```{r out.width = "50%", fig.align = "default", message = FALSE}
     p <- ggplot(mpg, aes(displ, hwy))
@@ -700,7 +700,7 @@ ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) +
       geom_point(colour = "white", size = 4) +
       geom_point(aes(colour = drv)) 
     ```
-    </div>
+    :::
 
 ## Statistical transformations
 
@@ -777,7 +777,7 @@ This works because every geom has a default stat; and every stat has a default g
     To find the variables computed by the stat, look for the help section
     titled "computed variables".
     
-    <div class="answer">
+    ::: answer
     One of those weird behaviours of ggplot2. Something needs to be passed to `group` for the plot to work, but it doesn't necessarily have to be `1`. 
     ```{r}
     ggplot(data = diamonds) + 
@@ -786,7 +786,7 @@ This works because every geom has a default stat; and every stat has a default g
     ggplot(data = diamonds) + 
       geom_bar(mapping = aes(x = cut, y = stat(prop), group = "whatevs"))
     ```
-    </div>
+    :::
     
 1.  You might want to draw greater attention to the statistical transformation
     in your code. For example, you might use `stat_summary()`, which
@@ -811,7 +811,7 @@ ggplot2 provides over 20 stats for you to use. Each stat is a function, so you c
     you rewrite the previous plot to use that geom function instead of the 
     stat function?
     
-    <div class="answer">
+    ::: answer
     The default geom associated with `stat_summary()` is `geom_pointrange()`. Note however that the default of `geom_pointrange()` is not `stat = "summary"` but `stat = "identity"`, which means that we have to provide the argument explicitely as well as the summary functions.
     ```{r}
     ggplot(data = diamonds) +
@@ -823,11 +823,11 @@ ggplot2 provides over 20 stats for you to use. Each stat is a function, so you c
         fun.y = median
         )
     ```
-    </div>
+    :::
 
 1.  What does `geom_col()` do? How is it different to `geom_bar()`?
 
-    <div class="answer">
+    ::: answer
     `geom_col()` is equivalent to `geom_bar(..., stat = "identity")`.
     ```{r, out.width = "50%", fig.align = "default"}
     ggplot(demo, aes(cut, freq)) +
@@ -836,7 +836,7 @@ ggplot2 provides over 20 stats for you to use. Each stat is a function, so you c
     ggplot(demo, aes(cut, freq)) +
       geom_bar(stat = "identity")
     ```
-    </div>
+    :::
 
 1.  Most geoms and stats come in pairs that are almost always used in 
     concert. Read through the documentation and make a list of all the 
@@ -845,14 +845,14 @@ ggplot2 provides over 20 stats for you to use. Each stat is a function, so you c
 1.  What variables does `stat_smooth()` compute? What parameters control
     its behaviour?
     
-    <div class="answer">
+    ::: answer
     `stat_smooth()` computes:
     - `y`: predicted value
     - `ymin` and `ymax`: lower and upper confidence interval around the mean
     - `se`: standard error
     
     Its parameters include: `method`, `formula`, `n`, `span`, `level` and `method.args`.
-    </div>
+    :::
 
 1.  In our proportion bar chart, we need to set `group = 1`. Why? In other
     words what is the problem with these two graphs?
@@ -864,7 +864,7 @@ ggplot2 provides over 20 stats for you to use. Each stat is a function, so you c
       geom_bar(mapping = aes(x = cut, fill = color, y = ..prop..))
     ```
     
-    <div class="answer">
+    ::: answer
     The code above returns:
     
     ```{r ref.label = "prop", eval = TRUE, echo = FALSE, out.width = "50%", fig.align = "default"}
@@ -899,7 +899,7 @@ ggplot2 provides over 20 stats for you to use. Each stat is a function, so you c
     
     Note that there are two ways to refer to the calculated aesthetics produced by the statistic: either by calling the `stat()` function, or by surrounding the variable name with `..`..
     
-    </div>
+    :::
   
 
 ## Position adjustments
@@ -984,40 +984,40 @@ To learn more about a position adjustment, look up the help page associated with
       geom_point()
     ```
     
-    <div class="answer">
+    ::: answer
     The points overlap.
     ```{r}
     ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) + 
       geom_jitter()
     ```
-    </div>
+    :::
 
 1.  What parameters to `geom_jitter()` control the amount of jittering?
 
-    <div class="answer">
+    ::: answer
     `width` and `height` control the amount of vertical and horizontal jitter.
-    </div>
+    :::
 
 1.  Compare and contrast `geom_jitter()` with `geom_count()`.
 
-    <div class="answer">
+    ::: answer
     `geom_count()` counts the number of observations at each location and maps the total to the point area.
     ```{r}
     ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) + 
       geom_count()
     ```
-    </div>
+    :::
 
 1.  What's the default position adjustment for `geom_boxplot()`? Create
     a visualisation of the `mpg` dataset that demonstrates it.
     
-    <div class="answer">
+    ::: answer
     The default is `"dodge2"`
     ```{r}
     ggplot(data = mpg, mapping = aes(x = class, y = hwy, colour = drv)) +
       geom_boxplot()
     ```
-    </div>
+    :::
 
 ## Coordinate systems
 
@@ -1071,7 +1071,7 @@ Coordinate systems are probably the most complicated part of ggplot2. The defaul
 
 1.  Turn a stacked bar chart into a pie chart using `coord_polar()`.
     
-    <div class="answer">
+    ::: answer
     Note that we have to specify `theta = "y"` so that the angle is mapped to the `y` variable.
     ```{r}
     ggplot(data = mpg) +
@@ -1079,19 +1079,19 @@ Coordinate systems are probably the most complicated part of ggplot2. The defaul
       coord_polar(theta = "y") +
       labs(x = NULL, y = NULL)
     ```
-    </div>
+    :::
 
 1.  What does `labs()` do? Read the documentation.
 
-    <div class="answer">
+    ::: answer
     `labs()` modifies axis, legend and plot lables.
-    </div>
+    :::
 
 1.  What's the difference between `coord_quickmap()` and `coord_map()`?
 
-    <div class="answer">
+    ::: answer
     `coord_quickmap()` is a quick approximation to `coord_map()`, which projects a portion of the Earth onto a flat 2D plane. Unlike `coord_map()`, `coord_quickmap()` preserves straight lines, which is less realistic.
-    </div>
+    :::
 
 1.  What does the plot below tell you about the relationship between city
     and highway mpg? Why is `coord_fixed()` important? What does 
@@ -1104,11 +1104,11 @@ Coordinate systems are probably the most complicated part of ggplot2. The defaul
       coord_fixed()
     ```
     
-    <div class="answer">
+    ::: answer
     The plot tells me that the highway mpg is always greater than the city highway mpg.
     
     `geom_abline()` adds diagonal with intercept in 0 and slope of 1. `coord_fixed()` ensures that the line is truly at 45° from both axes.
-    </div>
+    :::
 
 ## The layered grammar of graphics
 

@@ -134,7 +134,7 @@ This is an important part of the "do not repeat yourself" (or DRY) principle. Th
 1.  Why is `TRUE` not a parameter to `rescale01()`? What would happen if
     `x` contained a single missing value, and `na.rm` was `FALSE`?
     
-    <div class="answer">
+    ::: answer
     `TRUE` is a parameter to `rescale01()` because we want to prevent the missing values in the input from "spreading" and affecting the calculations for the entire vector.
     
     ```{r}
@@ -171,14 +171,14 @@ This is an important part of the "do not repeat yourself" (or DRY) principle. Th
     range(x, na.rm = FALSE, finite = TRUE)
     ```
     
-    </div>
+    :::
     
 
 1.  In the second variant of `rescale01()`, infinite values are left
     unchanged. Rewrite `rescale01()` so that `-Inf` is mapped to 0, and 
     `Inf` is mapped to 1.
     
-    <div class="answer">
+    ::: answer
     ```{r}
     rescale01 <- function(x) {
         rng <- range(x, na.rm = TRUE, finite = TRUE)
@@ -190,7 +190,7 @@ This is an important part of the "do not repeat yourself" (or DRY) principle. Th
     
     rescale01(c(1:10, Inf, -Inf))
     ```
-    </div>
+    :::
 
 1.  Practice turning the following code snippets into functions. Think about 
     what each function does. What would you call it? How many arguments does it
@@ -204,7 +204,7 @@ This is an important part of the "do not repeat yourself" (or DRY) principle. Th
     sd(x, na.rm = TRUE) / mean(x, na.rm = TRUE)
     ```
     
-    <div class="answer">
+    ::: answer
     
     ```{r}
     prop_missing <- function(x) { mean(is.na(x)) }
@@ -217,7 +217,7 @@ This is an important part of the "do not repeat yourself" (or DRY) principle. Th
     sd_to_mean(c(1, 7, 3, 5))
     ```
     
-    </div>
+    :::
     
 
 1.  write your own functions to compute the variance and skewness of a numeric vector.
@@ -231,7 +231,7 @@ This is an important part of the "do not repeat yourself" (or DRY) principle. Th
     \mathrm{Skew}(x) = \frac{\frac{1}{n-2}\left(\sum_{i=1}^n(x_i - \bar x)^3\right)}{\mathrm{Var}(x)^{3/2}} \text{.}
     $$
 
-    <div class="answer">
+    ::: answer
     
     ```{r}
     variance <- function(x) {
@@ -254,13 +254,13 @@ This is an important part of the "do not repeat yourself" (or DRY) principle. Th
     skewness(y)
     ```
     
-    </div>
+    :::
 
 
 1.  Write `both_na()`, a function that takes two vectors of the same length 
     and returns the number of positions that have an `NA` in both vectors.
     
-    <div class="answer">
+    ::: answer
     
     ```{r}
     both_na <- function(x, y) { sum(is.na(x) & is.na(y)) }
@@ -269,7 +269,7 @@ This is an important part of the "do not repeat yourself" (or DRY) principle. Th
     both_na(c(1, NA, 3, NA, 5), c(1, NA, 3, NA, NA))
     ```
 
-    </div>
+    :::
     
 
 1.  What do the following functions do? Why are they useful even though they
@@ -280,11 +280,11 @@ This is an important part of the "do not repeat yourself" (or DRY) principle. Th
     is_readable <- function(x) file.access(x, 4) == 0
     ```
     
-    <div class="answer">
+    ::: answer
     `is_directory()` returns `TRUE` if a path is a directory. The function is useful because it simplifies an operation that we are likely to use a lot in some cases (e.g. when writing files). 
     
     `is_readable()` returns `TRUE` if a file is readable. The biggest advantage to using this function comes from its clarity: we understand immediately what the function does from its name, without having to open up the documentation for `file.access()`. Moreover, unlike `file.access()`, which returns a `0` for success and `-1` for failure, `is_readable()` returns a logical, which makes it easier to write conditions.
-    </div>
+    :::
     
 
 1.  Read the [complete lyrics](https://en.wikipedia.org/wiki/Little_Bunny_Foo_Foo) 
@@ -379,7 +379,7 @@ knitr::include_graphics("screenshots/rstudio-nav.png")
     }
     ```
     
-    <div class="answer">
+    ::: answer
     ```{r}
     has_prefix <- function(string, prefix) {
       substr(string, 1, nchar(prefix)) == prefix
@@ -397,7 +397,7 @@ knitr::include_graphics("screenshots/rstudio-nav.png")
     }
     match_length(3, target = letters[1:7])
     ```
-    </div>
+    :::
 
     
 1.  Take a function that you've written recently and spend 5 minutes 
@@ -406,7 +406,7 @@ knitr::include_graphics("screenshots/rstudio-nav.png")
 1.  Compare and contrast `rnorm()` and `MASS::mvrnorm()`. How could you make
     them more consistent? 
     
-    <div class="answer">
+    ::: answer
     
     I would change the name of the arguments. Here are my suggestions:
     
@@ -416,16 +416,16 @@ knitr::include_graphics("screenshots/rstudio-nav.png")
     |           | `n`               | `n_samples` | Avoids confusion, more informative. |
     | `mean`    | `mu`              | `means`     | Standardises the term across functions. |
     
-    </div>
+    :::
     
 1.  Make a case for why `norm_r()`, `norm_d()` etc would be better than
     `rnorm()`, `dnorm()`. Make a case for the opposite.
     
-    <div class="answer">
+    ::: answer
     **Advantages:** The `norm_` prefix highlights the fact that these functions provide information on the normal distribution. Moreover, the consistent prefix makes it easier to search for the functions with RStudio's IDE autocompletion. 
     
     **Disadvantages:** Changing the names of the normal distribution functions would break consistency with other functions of statistical distributions (see `?Distributions` for the comprehensive list). For example, `dnorm`, `dunif` and `dgamma` return the density of the normal, uniform and gamma distribution respectively. A regular user of these functions may find it more useful to follow this convention, which highlights the output of the function. Moreover, searching via tab autocompletion is still relatively straightforward if we prefix the function with the package name (e.g. `stats::d`.)
-    </div>
+    :::
     
 
 ## Conditional execution
@@ -469,7 +469,7 @@ if (NA) {}
 
 You can use `||` (or) and `&&` (and) to combine multiple logical expressions. These operators are "short-circuiting": as soon as `||` sees the first `TRUE` it returns `TRUE` without computing anything else. As soon as `&&` sees the first `FALSE` it returns `FALSE`. You should never use `|` or `&` in an `if` statement: these are vectorised operations that apply to multiple values (that's why you use them in `filter()`). If you do have a logical vector, you can use `any()` or `all()` to collapse it to a single value.
 
-<div class="answer">
+::: answer
 ```{r error = TRUE}
 # Evaluates FALSE | TRUE
 if (c(FALSE, FALSE) || c(TRUE, FALSE)) { print("Success!") }
@@ -478,7 +478,7 @@ if (c(FALSE, FALSE) || c(TRUE, FALSE)) { print("Success!") }
 if (c(TRUE, FALSE) && c(TRUE, FALSE)) { print("Success!") }
 ```
 
-</div>
+:::
 
 
 Be careful when testing for equality. `==` is vectorised, which means that it's easy to get more than one output.  Either check the length is already 1, collapse with `all()` or `any()`, or use the non-vectorised `identical()`. `identical()` is very strict: it always returns either a single `TRUE` or a single `FALSE`, and doesn't coerce types. This means that you need to be careful when comparing integers and doubles:
@@ -528,7 +528,7 @@ function(x, y, op) {
 }
 ```
 
-<div class="answer">
+::: answer
 ```{r}
 do_op <- function(x, y, op) {
   switch(op,
@@ -544,7 +544,7 @@ do_op(1:3, 3:1, "divide")
 do_op(1:3, 3:1, "times")
 ```
 
-</div>
+:::
 
 
 Another useful function that can often eliminate long chains of `if` statements is `cut()`. It's used to discretise continuous variables.
@@ -601,7 +601,7 @@ if (y < 20) {
 1.  What's the difference between `if` and `ifelse()`? Carefully read the help
     and construct three examples that illustrate the key differences.
     
-    <div class="answer">
+    ::: answer
     
     ***`if (cond) cons`***
       - `cond` cannot be `NA`
@@ -636,7 +636,7 @@ if (y < 20) {
     ifelse(c(NA, TRUE), 1:5, 5:10)
     ```
     
-    </div>
+    :::
     
 
 1.  Write a greeting function that says "good morning", "good afternoon",
@@ -644,7 +644,7 @@ if (y < 20) {
     argument that defaults to `lubridate::now()`. That will make it 
     easier to test your function.)
     
-    <div class="answer">
+    ::: answer
     ```{r}
     greeting <- function(time = lubridate::now()) {
       
@@ -661,7 +661,7 @@ if (y < 20) {
     
     greeting()
     ```
-    </div>
+    :::
 
 1.  Implement a `fizzbuzz` function. It takes a single number as input. If
     the number is divisible by three, it returns "fizz". If it's divisible by
@@ -669,7 +669,7 @@ if (y < 20) {
     "fizzbuzz". Otherwise, it returns the number. Make sure you first write 
     working code before you create the function.
     
-    <div class="answer">
+    ::: answer
     I organise my conditions in terms of strictness and take advantage of `return()` to return the result early if the condition is met.
     
     ```{r}
@@ -689,7 +689,7 @@ if (y < 20) {
     fizzbuzz(8)
     ```
     
-    </div>
+    :::
     
 1.  How could you use `cut()` to simplify this set of nested if-else statements?
 
@@ -707,7 +707,7 @@ if (y < 20) {
     }
     ```
     
-    <div class="answer">
+    ::: answer
     ```{r}
     (temp <- -2:35)
     
@@ -717,11 +717,11 @@ if (y < 20) {
       labels = c("freezing", "cold", "cool", "warm", "hot")
       )
     ```
-    </div>
+    :::
     
     How would you change the call to `cut()` if I'd used `<` instead of `<=`?
     
-    <div class="answer">
+    ::: answer
     
     ```{r}
     cut(
@@ -732,13 +732,13 @@ if (y < 20) {
       )
     ```
     
-    </div>
+    :::
     
     
     What is the other chief advantage of `cut()` for this problem? (Hint:
     what happens if you have many values in `temp`?)
     
-    <div class="answer">
+    ::: answer
     
     As we can see below, the problem with the if-else statements is that they require `temp` to be an atomic vector. When it is not, the `if` statements use only the first element of the vector to evaluate the condition, therefore returning only one output. `cut()`, on the other hand, is *vectorised*, which means that it will evaluate the conditions for each element of the input vector and will return an output of equal size.
     
@@ -758,11 +758,11 @@ if (y < 20) {
     }
     ```
 
-    </div>
+    :::
 
 1.  What happens if you use `switch()` with numeric values?
 
-    <div class="answer">
+    ::: answer
     If you provide `switch()` with a numeric value *n*, then the *n + 1* element of `switch()` is returned.
     ```{r}
     one_to_five <- function(x) {
@@ -773,7 +773,7 @@ if (y < 20) {
     one_to_five(4)
     one_to_five(6)
     ```
-    </div>
+    :::
 
 1.  What does this `switch()` call do? What happens if `x` is "e"?
 
@@ -788,7 +788,7 @@ if (y < 20) {
     
     Experiment, then carefully read the documentation. 
     
-    <div class="answer">
+    ::: answer
     
     When there is a match to an alternative with a missing element (like `a` and `c` below), then `switch()` will return the next non-missing element.
     
@@ -828,7 +828,7 @@ if (y < 20) {
     default_switch("e")
     ```
     
-    </div>
+    :::
     
 
 ## Function arguments
@@ -1019,7 +1019,7 @@ Arguments in R are lazily evaluated: they're not computed until they're needed. 
 
 1.  What does `commas(letters, collapse = "-")` do? Why?
 
-    <div class="answer">
+    ::: answer
     This call returns an error because the `collapse` arguement to `stringr::str_c()` was already provided in the body of the `commas()` function.
     ```{r, error = TRUE}
     commas(letters, collapse = "-")
@@ -1036,13 +1036,13 @@ Arguments in R are lazily evaluated: they're not computed until they're needed. 
     commas(letters, collapse = "-")
     ```
     
-    </div>
+    :::
 
 1.  It'd be nice if you could supply multiple characters to the `pad` argument, 
     e.g. `rule("Title", pad = "-+")`. Why doesn't this currently work? How 
     could you fix it?
     
-    <div class="answer">
+    ::: answer
     The `rule()` function implicitely assumes that `pad` is a character vector of length one. Therefore, when we supply it with a character like `"-+"`, the length of the pad will be doubled.
     
     ```{r}
@@ -1064,11 +1064,11 @@ Arguments in R are lazily evaluated: they're not computed until they're needed. 
     rule("Important output", pad = ":-)")
     ```
     
-    </div>
+    :::
     
 1.  What does the `trim` argument to `mean()` do? When might you use it?
 
-    <div class="answer">
+    ::: answer
     `trim` removes up to 50% of the observations at the tails of `x`. This specification may be useful when we want to exclude outliers from our calculation.
     
     ```{r}
@@ -1077,17 +1077,17 @@ Arguments in R are lazily evaluated: they're not computed until they're needed. 
     mean(x, trim = 0.1)
     ```
     
-    </div>
+    :::
 
 1.  The default value for the `method` argument to `cor()` is 
     `c("pearson", "kendall", "spearman")`. What does that mean? What 
     value is used by default?
     
-    <div class="answer">
+    ::: answer
     This means that only the values `"pearson"`, `"kendall"` or `"spearman"` can be provided to `method`. The default is `"pearson"`. 
     
     Note that the values *can* be abbreviated. This is allowed because `cor()` calls `match.arg()` under the hood. For more details on `match.arg()`, I recommend this blog post: <https://alistaire.rbind.io/blog/match.arg/>.
-    </div>
+    :::
     
 
 ## Return values

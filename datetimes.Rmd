@@ -164,17 +164,17 @@ as_date(365 * 10 + 2)
     ymd(c("2010-10-10", "bananas"))
     ```
     
-    <div class="answer">
+    ::: answer
     
     ```{r ref.label="bananas", eval=TRUE}
     ```
     
-    </div>
+    :::
     
 
 1.  What does the `tzone` argument to `today()` do? Why is it important?
 
-    <div class="answer">
+    ::: answer
     The `tzone` argument can be used to determine today's date in another time zone. For the full list of valid values to `tzone`, see `OlsonNames()`.
     
     ```{r}
@@ -182,7 +182,7 @@ as_date(365 * 10 + 2)
     today(tzone = "Australia/Canberra")
     ```
     
-    </div>
+    :::
 
 
 1.  Use the appropriate lubridate function to parse each of the following dates:
@@ -195,7 +195,7 @@ as_date(365 * 10 + 2)
     d5 <- "12/30/14" # Dec 30, 2014
     ```
     
-    <div class="answer">
+    ::: answer
     
     ```{r}
     mdy(d1)
@@ -205,7 +205,7 @@ as_date(365 * 10 + 2)
     mdy(d5)
     ```
     
-    </div>
+    :::
     
 
 ## Date-time components
@@ -336,7 +336,7 @@ Setting larger components of a date to a constant is a powerful technique that a
 1.  How does the distribution of flight times within a day change over the 
     course of the year?
     
-    <div class="answer">
+    ::: answer
     
     January and Febraury seem to have a lower volume of flights, specially between 6am and 7pm. Overall, the summer months have relatively more departures irrespective of the time of day.
     
@@ -352,13 +352,13 @@ Setting larger components of a date to a constant is a powerful technique that a
     
     *Note:* I feel like a proper visualisation would involve stacked histograms (like in **ggridges**) or spagetti plots (like in **brolgar** ), but I will settle with this one for now.
     
-    </div>
+    :::
     
     
 1.  Compare `dep_time`, `sched_dep_time` and `dep_delay`. Are they consistent?
     Explain your findings.
     
-    <div class="answer">
+    ::: answer
     
     Let's compute our own variable for the delay at departure (in minutes), and compare it against `dep_delay`.
     
@@ -399,12 +399,12 @@ Setting larger components of a date to a constant is a powerful technique that a
     flights_dt %>% 
       mutate(dep_time = sched_dep_time + (60 * dep_delay))
     ```
-    </div>
+    :::
 
 1.  Compare `air_time` with the duration between the departure and arrival.
     Explain your findings. (Hint: consider the location of the airport.)
     
-    <div class="answer">
+    ::: answer
     
     I use the date-time variables `arr_time` and `dep_time` to calculate the flight duration. Note that this variable will be biased because:
     
@@ -452,12 +452,12 @@ Setting larger components of a date to a constant is a powerful technique that a
     - `sched_arr_time`: Add `air_time` to `sched_dep_time`, put this date-time in the time zone of the destination airport (using `force_tzs(..., tzone_out = "America/New_York"`) and extract the year, month and day components. This way we ensure that the date set for arrival will correspond to a later time than the date of departure. Use these components, the time zones and `shed_arr_time` (original in HHMM format) to create the new `shed_arr_time`.
     - `arr_time`: Similar procedure as for `sched_arr_time`.
     
-    </div>
+    :::
     
 1.  How does the average delay time change over the course of a day?
     Should you use `dep_time` or `sched_dep_time`? Why?
     
-    <div class="answer">
+    ::: answer
     
     We should use `sched_dep_time` since `dep_time` is biased by the delay itself.
     
@@ -470,13 +470,13 @@ Setting larger components of a date to a constant is a powerful technique that a
       geom_line()
     ```
     
-    </div>
+    :::
     
 
 1.  On what day of the week should you leave if you want to minimise the
     chance of a delay?
     
-    <div class="answer">
+    ::: answer
     
     You are least likely to be delayed on a Saturday, and if you are, the median delay for that day is the shortest of the week.
     
@@ -498,12 +498,12 @@ Setting larger components of a date to a constant is a powerful technique that a
       arrange(prob)
     ```
     
-    </div>
+    :::
 
 1.  What makes the distribution of `diamonds$carat` and 
     `flights$sched_dep_time` similar?
     
-    <div class="answer">
+    ::: answer
     
     We observe unusual peaks at "pretty" values (i.e. round numbers, at the hour.)
     
@@ -518,7 +518,7 @@ Setting larger components of a date to a constant is a powerful technique that a
       scale_x_datetime(date_breaks = "1 hour", date_labels = "%H")
     ```
     
-    </div>
+    :::
     
 
 1.  Confirm my hypothesis that the early departures of flights in minutes
@@ -526,7 +526,7 @@ Setting larger components of a date to a constant is a powerful technique that a
     Hint: create a binary variable that tells you whether or not a flight 
     was delayed.
     
-    <div class="answer">
+    ::: answer
     
     Yes, we observe a peak at the probability of being early for flights departing between minutes 20-30 and 50-60.
     
@@ -542,7 +542,7 @@ Setting larger components of a date to a constant is a powerful technique that a
       geom_line()
     ```
         
-    </div>
+    :::
     
 
 ## Time spans
@@ -709,7 +709,7 @@ knitr::include_graphics("diagrams/datetimes-arithmetic.png")
 
 1.  Why is there `months()` but no `dmonths()`?
 
-    <div class="answer">
+    ::: answer
     
     Months can last 28, 29, 30 or 31 days. There is therefore too much variability in their length as to express them in seconds.
     
@@ -718,12 +718,12 @@ knitr::include_graphics("diagrams/datetimes-arithmetic.png")
     ddays(31)
     ```
     
-    </div>
+    :::
 
 1.  Explain `days(overnight * 1)` to someone who has just started 
     learning R. How does it work?
     
-    <div class="answer">
+    ::: answer
     `overnight` is a vector of class logical, which takes only two possible values: `TRUE` or `FALSE`. When you multiply this vector by `1` you change its class to a numeric, and its values are recoded: `TRUE` becomes `1` and `FALSE` becomes `0`. The `day()` function will thus receive as input a vector of zeros and ones. For the `1`s, `day()` will return the type period that corresponds to a day, and for the `0`s, a time period of zero seconds.
     
     ```{r}
@@ -734,26 +734,26 @@ knitr::include_graphics("diagrams/datetimes-arithmetic.png")
     days(overnight * 1)
     ```
     
-    </div>
+    :::
 
 1.  Create a vector of dates giving the first day of every month in 2015.
     Create a vector of dates giving the first day of every month
     in the _current_ year.
 
-    <div class="answer">
+    ::: answer
     
     ```{r}
     make_date(year = 2015, month = 1:12, day = 1)
     make_date(year = year(today()), month = 1:12, day = 1)
     ```
     
-    </div>
+    :::
 
 
 1.  Write a function that given your birthday (as a date), returns 
     how old you are in years.
     
-    <div class="answer">
+    ::: answer
     
     ```{r}
     calculate_age <- function(birthday) {
@@ -764,11 +764,11 @@ knitr::include_graphics("diagrams/datetimes-arithmetic.png")
     calculate_age(as_date("1992-03-04"))
     ```
     
-    </div>
+    :::
 
 1.  Why can't `(today() %--% (today() + years(1))) / months(1)` work?
 
-    <div class="answer">
+    ::: answer
     
     The code "works" in the sense that it returns an answer, but "fails" in that it may give vastly different answers depending on the starting date.
     
@@ -795,7 +795,7 @@ knitr::include_graphics("diagrams/datetimes-arithmetic.png")
     
     
     
-    </div>
+    :::
 
 
 ## Time zones 

@@ -148,7 +148,7 @@ Normally you don't need to know about these different types because you can alwa
 
 1.  Describe the difference between `is.finite(x)` and  `!is.infinite(x)`.
 
-    <div class="answer">
+    ::: answer
     `is.finite(x)` will not return `TRUE` for `NA` or `NaN` values, but `!is.infinite(x)` will.
     
     ```{r}
@@ -157,12 +157,12 @@ Normally you don't need to know about these different types because you can alwa
     !is.infinite(x)
     ```
     
-    </div>
+    :::
 
 1.  Read the source code for `dplyr::near()` (Hint: to see the source code,
     drop the `()`). How does it work? 
     
-    <div class="answer">
+    ::: answer
     The source code of `dplyr::near()` is:
     
     ```{r}
@@ -171,13 +171,13 @@ Normally you don't need to know about these different types because you can alwa
     
     The function calculates the absolute difference between `x` and `y` and checks if the resulting value is less than the square root of the smallest positive floating-point number in our machine.
     
-    </div>
+    :::
 
 1.  A logical vector can take 3 possible values. How many possible
     values can an integer vector take? How many possible values can
     a double take? Use google to do some research.
     
-    <div class="answer">
+    ::: answer
     
     The maximum range of representable integers in R is $\pm2^{31}−1$, or `r scales::comma(((2^31) - 1) * 2)`. This is because the current implementations of R uses 32-bit integers for integer vectors (see `?integer`). 
     
@@ -197,13 +197,13 @@ Normally you don't need to know about these different types because you can alwa
     
     *For  a more comprehensive answer, see <https://jrnold.github.io/r4ds-exercise-solutions/vectors.html#exercise-20.3.3>.*
     
-    </div>
+    :::
     
 
 1.  Brainstorm at least four functions that allow you to convert a double to an
     integer. How do they differ? Be precise.
     
-    <div class="answer">
+    ::: answer
     
     ```{r}
     (x <- seq(-3, 3, 0.5))
@@ -219,19 +219,19 @@ Normally you don't need to know about these different types because you can alwa
     x %/% 1 # integer division
     ```
     
-    </div>
+    :::
     
 1.  What functions from the readr package allow you to turn a string
     into logical, integer, and double vector?
     
-    <div class="answer">
+    ::: answer
     ```{r}
     parse_logical(c("TRUE", "false", "True"))
     parse_integer(c("1", "2", "3"))
     parse_double(c("1.1", "2.2", "3.3"))
     ```
     
-    </div>
+    :::
     
 
 ## Using atomic vectors
@@ -348,7 +348,7 @@ tibble(x = 1:4, y = rep(1:2, 2))
 tibble(x = 1:4, y = rep(1:2, each = 2))
 ```
 
-<div class="answer">
+::: answer
 `r emo::ji("exploding_head")` `rep()` has an `each` parameter!
 
 Here is another useful one:
@@ -356,7 +356,7 @@ Here is another useful one:
 tibble(x = 1:4, y = rep(1:2, length.out = length(x)))
 ```
 
-</div>
+:::
 
 
 ### Naming vectors
@@ -441,11 +441,11 @@ So far we've used `dplyr::filter()` to filter the rows in a tibble. `filter()` o
     Like with positive integers, you can also use a character vector to 
     duplicate individual entries.
     
-    <div class="answer">
+    ::: answer
     ```{r}
     x[c("xyz", "def", "xyz")]
     ```
-    </div>
+    :::
     
 
 1.  The simplest type of subsetting is nothing, `x[]`, which returns the 
@@ -465,7 +465,7 @@ There is an important variation of `[` called `[[`. `[[` only ever extracts a si
 1.  What does `mean(is.na(x))` tell you about a vector `x`? What about
     `sum(!is.finite(x))`?
     
-    <div class="answer">
+    ::: answer
     `mean(is.na(x))` returns the proportion of missing values in `x`, and `sum(!is.finite(x))` the number of elements of `x` that are not finite (which can include missing values).
     
     ```{r}
@@ -476,14 +476,14 @@ There is an important variation of `[` called `[[`. `[[` only ever extracts a si
     ```
     
     
-    </div>
+    :::
     
 
 1.  Carefully read the documentation of `is.vector()`. What does it actually
     test for? Why does `is.atomic()` not agree with the definition of 
     atomic vectors above?
     
-    <div class="answer">
+    ::: answer
     According to the documentation, *`is.vector()` returns `TRUE` if `x` is a vector of the specified mode having no attributes other than names.* For example, `is.vector()` of a date will return `FALSE` because, despite being a vector of type numeric, one of its attributes is the class `"Date"`.
         
     ```{r}
@@ -501,11 +501,11 @@ There is an important variation of `[` called `[[`. `[[` only ever extracts a si
     typeof(lubridate::today())
     ```
     
-    </div>
+    :::
     
 1.  Compare and contrast `setNames()` with `purrr::set_names()`.
 
-    <div class="answer">
+    ::: answer
     
     `stats::setNames()` is a convenience function that sets the names of an object and returns the object, which makes it pipe-friendly:
     
@@ -542,14 +542,14 @@ There is an important variation of `[` called `[[`. `[[` only ever extracts a si
       purrr::set_names(un_deux, NULL)
       ```
 
-    </div>
+    :::
     
 
 1.  Create functions that take a vector as input and returns:
     
     1. The last value.  Should you use `[` or `[[`?
     
-        <div class="answer">
+        ::: answer
         Both work, but `[[` is better practice because it let's programmers know that we are expecting only one return value.
         ```{r}
         take_last1 <- function(x) { x[length(x)] }
@@ -558,12 +558,12 @@ There is an important variation of `[` called `[[`. `[[` only ever extracts a si
         take_last1(1:5)
         take_last2(1:5)
         ```
-        </div>
+        :::
     
 
     1. The elements at even numbered positions.
     
-        <div class="answer">
+        ::: answer
         ```{r}
         get_from_even <- function(x) {
           pos <- (seq_along(x) %% 2) == 0
@@ -572,21 +572,21 @@ There is an important variation of `[` called `[[`. `[[` only ever extracts a si
         
         get_from_even(letters)
         ```
-        </div>
+        :::
     
     1. Every element except the last value.
     
-        <div class="answer">
+        ::: answer
         ```{r}
         all_but_last <- function(x) { x[-length(x)] }
         
         all_but_last(20:30)
         ```
-        </div>
+        :::
     
     1. Only even numbers (and no missing values).
         
-        <div class="answer">
+        ::: answer
         ```{r}
         get_even <- function(x) {
           pos <- (x %% 2 == 0) & !is.na(x)
@@ -595,12 +595,12 @@ There is an important variation of `[` called `[[`. `[[` only ever extracts a si
         
         get_even(c(1:10, NA, 100:110))
         ```
-        </div>
+        :::
         
 
 1.  Why is `x[-which(x > 0)]` not the same as `x[x <= 0]`? 
 
-    <div class="answer">
+    ::: answer
     The two expression will give different answers only in the presence of missing values, where `x[x <= 0]` will transform the original `NaN` value to `NA`.
     
     ```{r}
@@ -626,14 +626,14 @@ There is an important variation of `[` called `[[`. `[[` only ever extracts a si
     
     It is good to take note of this behaviour as we often rely on logical indexing for subsetting vectors.
     
-    </div>
+    :::
     
 
 1.  What happens when you subset with a positive integer that's bigger
     than the length of the vector? What happens when you subset with a 
     name that doesn't exist?
     
-    <div class="answer">
+    ::: answer
     ```{r, error=TRUE}
     x <- 1:5
     x[6]
@@ -644,7 +644,7 @@ There is an important variation of `[` called `[[`. `[[` only ever extracts a si
     x[["helo"]]
     x[["hel", exact = FALSE]] # allow partial matching
     ```
-    </div>
+    :::
     
 
 ## Recursive vectors (lists) {#lists}
@@ -784,7 +784,7 @@ knitr::include_graphics("images/pepper-3.jpg")
 1.  What happens if you subset a tibble as if you're subsetting a list?
     What are the key differences between a list and a tibble?
     
-    <div class="answer">
+    ::: answer
     
     Subsetting works in the same way as a list.
     
@@ -807,7 +807,7 @@ knitr::include_graphics("images/pepper-3.jpg")
     smiths["subject"][[1]]
     ```
     
-    </div>
+    :::
     
 
 ## Attributes
@@ -945,7 +945,7 @@ The main difference is the class. The class of tibble includes "data.frame" whic
     type is the augmented vector built on top of? What attributes does it 
     use?
     
-    <div class="answer">
+    ::: answer
     ```{r}
     (x <- hms::hms(3600))
     
@@ -953,22 +953,22 @@ The main difference is the class. The class of tibble includes "data.frame" whic
     typeof(x)
     attributes(x)
     ```
-    </div>
+    :::
     
     
 1.  Try and make a tibble that has columns with different lengths. What
     happens?
     
-    <div class="answer">
+    ::: answer
     ```{r, error=TRUE}
     tibble(number = 1:5, letter = LETTERS)
     ```
-    </div>
+    :::
 
 1.  Based on the definition above, is it ok to have a list as a
     column of a tibble?
     
-    <div class="answer">
+    ::: answer
     It is possible to have a list as a column of a tibble as long as it has the same number of elements as other columns.
     
     ```{r}
@@ -979,4 +979,4 @@ The main difference is the class. The class of tibble includes "data.frame" whic
       )
     ```
     
-    </div>
+    :::

@@ -134,7 +134,7 @@ When working with factors, the two most common operations are changing the order
 1.  Explore the distribution of `rincome` (reported income). What makes the
     default bar chart hard to understand? How could you improve the plot?
     
-    <div class="answer">
+    ::: answer
     
     The labels overlap in the default chart. 
     
@@ -149,13 +149,13 @@ When working with factors, the two most common operations are changing the order
     p_income + coord_flip()
     ```
     
-    </div>
+    :::
     
 
 1.  What is the most common `relig` in this survey? What's the most
     common `partyid`?
     
-    <div class="answer">
+    ::: answer
     
     ```{r}
     gss_cat %>% 
@@ -166,12 +166,12 @@ When working with factors, the two most common operations are changing the order
       top_n(1)
     ```
     
-    </div>
+    :::
 
 1.  Which `relig` does `denom` (denomination) apply to? How can you find
     out with a table? How can you find out with a visualisation?
     
-    <div class="answer">
+    ::: answer
     
     ```{r pairs, include=FALSE}
     (pairs <- gss_cat %>% 
@@ -204,7 +204,7 @@ When working with factors, the two most common operations are changing the order
       theme(axis.text.x = element_text(angle = 90))
     ```
     
-    </div>
+    :::
     
 
 ## Modifying factor order
@@ -270,9 +270,9 @@ ggplot(rincome_summary, aes(age, fct_relevel(rincome, "Not applicable"))) +
 
 Why do you think the average age for "Not applicable" is so high?
 
-<div class="answer">
+::: answer
 This could be driven by elderly adults who do not perceive income.
-</div>
+:::
 
 Another type of reordering is useful when you are colouring the lines on a plot. `fct_reorder2()` reorders the factor by the `y` values associated with the largest `x` values. This makes the plot easier to read because the line colours line up with the legend.
 
@@ -305,20 +305,20 @@ gss_cat %>%
 1.  There are some suspiciously high numbers in `tvhours`. Is the mean a good
     summary?
     
-    <div class="answer">
+    ::: answer
     
     No, it would be best to take the median. 
     
     ```{r}
     summary(gss_cat$tvhours)
     ```
-    </div>
+    :::
     
 
 1.  For each factor in `gss_cat` identify whether the order of the levels is
     arbitrary or principled.
     
-    <div class="answer">
+    ::: answer
     
     Let's first have a look at the levels:
     
@@ -339,13 +339,13 @@ gss_cat %>%
     |`relig`   | Arbitrary  |
     |`denom`   | Arbitrary  |
     
-    </div>
+    :::
     
 
 1.  Why did moving "Not applicable" to the front of the levels move it to the
     bottom of the plot?
     
-    <div class="answer">
+    ::: answer
     
     All factor levels have an associated integer value, which is what allows us to give them an order. When we apply `fct_relevel(rincome, "Not applicable")`, the level `"Not applicable"` becomes the factor level with the lowest associated value, as we can see below.
     
@@ -361,7 +361,7 @@ gss_cat %>%
     
     ggplot2 uses these underlying values to arrange our factors in the x or y axis. Factors with lower underlying values will be closer to the lower-left corner of the plot, which corresponds to the (0,0) point in the (x, y) coordinate plane. 
     
-    </div>
+    :::
     
 
 ## Modifying factor levels
@@ -446,7 +446,7 @@ gss_cat %>%
 1.  How have the proportions of people identifying as Democrat, Republican, and
     Independent changed over time?
     
-    <div class="answer">
+    ::: answer
     
     ```{r}
     props <- gss_cat %>% 
@@ -468,14 +468,14 @@ gss_cat %>%
       ggplot(aes(year, prop, colour = fct_reorder(partyid, -prop))) +
       geom_line()
     ```
-    </div>
+    :::
     
 
 1.  How could you collapse `rincome` into a small set of categories?
 
-    <div class="answer">
+    ::: answer
     
     Similarly to my previous answer, I would manually define broader income brackets using `fct_collapse()`, and would lump all of the other factor levels by setting the `group_other` argument to `TRUE`. 
     
-    </div>
+    :::
 

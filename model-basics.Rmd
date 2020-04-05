@@ -208,7 +208,7 @@ These are exactly the same values we got with `optim()`! Behind the scenes `lm()
     )
     ```
     
-    <div class="answer">
+    ::: answer
     
     Here is a visualisation of the fitted linear model on `sim1a`.
     ```{r}
@@ -264,7 +264,7 @@ These are exactly the same values we got with `optim()`! Behind the scenes `lm()
       facet_wrap(vars(distribution))
     ```
     
-    </div>
+    :::
 
 1.  One way to make linear models more robust is to use a different distance
     measure. For example, instead of root-mean-squared distance, you could use
@@ -280,7 +280,7 @@ These are exactly the same values we got with `optim()`! Behind the scenes `lm()
     Use `optim()` to fit this model to the simulated data above and compare it 
     to the linear model.
     
-    <div class="answer">
+    ::: answer
     The slope estimate from `optim()` seems to give more weight to extreme values that to those centered around the mean.
     ```{r}
     sim1a_optim <- optim(c(0, 0), measure_distance, data = sim1a)
@@ -331,7 +331,7 @@ These are exactly the same values we got with `optim()`! Behind the scenes `lm()
       facet_wrap(vars(method))
     ```
     
-    </div>
+    :::
 
 1.  One challenge with performing numerical optimisation is that it's only
     guaranteed to find one local optimum. What's the problem with optimising
@@ -343,7 +343,7 @@ These are exactly the same values we got with `optim()`! Behind the scenes `lm()
     }
     ```
     
-    <div class="answer">
+    ::: answer
     Conceptually, minimising `a[1] + data$x * a[2] + a[3]` is equivalent to minimising  `b + data$x * a[2]` where `b = a[1] + a[3]`. There is just one pair of values `(a[2], b)` that minimise the latter expression, but there can be many triplets that minimise the former. The `optim()` function will however return only *one* of these triplets depending on the starting point specified in `par`. 
     
     Note also that the parameter estimates of `a[2]` are slightly different across specifications, even though the underlying population estimate is the same. The estimates of `a[1]` and `a[2]` change considerably with respect to the starting point, though their sum remains close to `r best$par[1]`.
@@ -363,7 +363,7 @@ These are exactly the same values we got with `optim()`! Behind the scenes `lm()
     best3c <- optim(c(0, 0, 5), measure_distance, data = sim1)
     best3c$par
     ```
-    </div>
+    :::
 
 ## Visualising models
 
@@ -440,7 +440,7 @@ This looks like random noise, suggesting that our model has done a good job of c
     `loess()` instead of `lm()`. How does the result compare to 
     `geom_smooth()`?
     
-    <div class="answer">
+    ::: answer
     The result is the same, but `geom_smooth()` also prints a confidence interval around the line with fitted values.
     ```{r}
     sim1_loess_mod <- loess(y ~ x, data = sim1)
@@ -462,32 +462,32 @@ This looks like random noise, suggesting that our model has done a good job of c
       geom_point() +
       geom_smooth()
     ```
-    </div>
+    :::
     
 1.  `add_predictions()` is paired with `gather_predictions()` and 
     `spread_predictions()`. How do these three functions differ?
     
-    <div class="answer">
+    ::: answer
     When working with many models, `gather_predictions()` and `spread_predictions()` control how to store the predictions for each model in a data frame. `spread_predictions()` adds one new column for each model, making the resulting data frame wider. `gather_predictions()` makes the data frame longer by repeating the input rows for each model, and adds two columns specifying the predicted value and the model it belongs to.
-    </div>
+    :::
     
 1.  What does `geom_ref_line()` do? What package does it come from?
     Why is displaying a reference line in plots showing residuals
     useful and important?
     
-    <div class="answer">
+    ::: answer
     `geom_ref_line()` belongs to the **modelr** package. It is a simple wrapper around `ggplot2::geom_hline()` and `ggplot2::geom_vline()`. The function adds a horizontal or vertical line to the plot.
     It is important to draw this line because it makes it easier to check if our residuals are more or less equally distributed around zero, which is an indication of a well-specified model.
-    </div>
+    :::
     
 1.  Why might you want to look at a frequency polygon of absolute residuals?
     What are the pros and cons compared to looking at the raw residuals?
     
-    <div class="answer">
+    ::: answer
     A frenquency polygon allows us to see if there is any systematic bias in the distribution of our residuals. This is generally hard to see by the naked eye, unless the bias is very strong and our sample is relatively small.
     
     One disadvantage of this approach is that it does not allow for comparison with other variables. For example, it may be useful to check the residuals against the predicted values to check for missing variable bias.
-    </div>
+    :::
 
 ## Formulas and model families
 
@@ -701,7 +701,7 @@ ggplot(grid, aes(x2, pred, colour = x1, group = x1)) +
   facet_wrap(~ model)
 ```
 
-<div class="answer">
+::: answer
 
 `r emo::ji("bar_chart")` *Off-topic notes on ggplot2*
 
@@ -737,7 +737,7 @@ ggplot(grid, aes(x1, pred, colour = factor(x2))) +
   facet_wrap(~ model)
 ```
 
-</div>
+:::
 
 This shows you that interaction between two continuous variables works basically the same way as for a categorical and continuous variable. An interaction says that there's not a fixed offset: you need to consider both values of `x1` and `x2` simultaneously in order to predict `y`.
 
@@ -814,7 +814,7 @@ Notice that the extrapolation outside the range of the data is clearly bad. This
     an intercept. What happens to the model equation? What happens to the
     predictions?
     
-    <div class="answer">
+    ::: answer
     Removing the intercept has no effect on the predictions. The intercept only changes the point of reference used in calculating the parameter estimates.
     
     In the traditional specification (with an intercept), one of the groups is taken as a "reference" group, and the parameter estimates report the difference between each group and the reference. The second specification (without an intercept), gives the mean of each group.
@@ -840,12 +840,12 @@ Notice that the extrapolation outside the range of the data is clearly bad. This
       geom_point(aes(y = pred), colour = "red", size = 4) +
       facet_wrap(~ model)
     ```
-    </div>
+    :::
     
 1.  Use `model_matrix()` to explore the equations generated for the models
     I fit to `sim3` and `sim4`. Why is `*` a good shorthand for interaction?
     
-    <div class="answer">
+    ::: answer
     This type of notation is very convinient, speacially when dealing with categorical variables since it adds interaction terms for the non-reference groups.
     
     `*` is a good shorthand for interaction because interactions can be represented as multiplications of dummy variables.
@@ -859,7 +859,7 @@ Notice that the extrapolation outside the range of the data is clearly bad. This
     model_matrix(modelr::sim4, mod_no_int)
     model_matrix(modelr::sim4, mod_int)
     ```
-    </div>
+    :::
 
 1.  Using the basic principles, convert the formulas in the following two
     models into functions. (Hint: start by converting the categorical variable
@@ -870,7 +870,7 @@ Notice that the extrapolation outside the range of the data is clearly bad. This
     mod2 <- lm(y ~ x1 * x2, data = sim3)
     ```
     
-    <div class="answer">
+    ::: answer
     This question is not very clear. I will assume that they are asking us to create a function that returns the matrix representation of the two formulas for any data frame containing a numerical variable `x1` and a categorical variable `x2`.
     
     This implementation may not be the best for a package since it relies a little too much on dplyr, which has a lot of dependencies. I also think there is a smarter way to add the interaction variables at the `pivot_wider()` stage.
@@ -953,13 +953,13 @@ Notice that the extrapolation outside the range of the data is clearly bad. This
     base_model_matrix(modelr::sim3)
     base_model_matrix(modelr::sim3, interaction = TRUE)
     ```
-    </div>
+    :::
 
 1.   For `sim4`,  which of `mod1` and `mod2` is better? I think `mod2` does a 
      slightly better job at removing patterns, but it's pretty subtle. Can you 
      come up with a plot to support my claim? 
      
-     <div class="answer">
+     ::: answer
      The residuals from `mod2` seem to be more evenly distributed around zero.
      ```{r}
      mod1 <- lm(y ~ x1 + x2, data = sim4)
@@ -970,7 +970,7 @@ Notice that the extrapolation outside the range of the data is clearly bad. This
       ggplot(aes(resid, colour = model)) +
       geom_freqpoly(binwidth = 0.5)
      ```
-     </div>
+     :::
 
 ## Missing values
 

@@ -147,14 +147,14 @@ The main reason that some older functions don't work with tibble is the `[` func
 1.  How can you tell if an object is a tibble? (Hint: try printing `mtcars`,
     which is a regular data frame). 
     
-    <div class="answer">
+    ::: answer
     Tibbles have a nicer printing method, which limits the number of rows displayed and returns the column types.
     ```{r}
     mtcars
     
     as_tibble(mtcars)
     ```
-    </div>
+    :::
 
 1.  Compare and contrast the following operations on a `data.frame` and 
     equivalent tibble. What is different? Why might the default data frame
@@ -167,7 +167,7 @@ The main reason that some older functions don't work with tibble is the `[` func
     df[, c("abc", "xyz")]
     ```
     
-    <div class="answer">
+    ::: answer
     
     ```{r}
     df <- data.frame(abc = 1, xyz = "a")
@@ -190,12 +190,12 @@ The main reason that some older functions don't work with tibble is the `[` func
     tb[, c("abc", "xyz")]
     ```
     
-    </div>
+    :::
 
 1.  If you have the name of a variable stored in an object, e.g. `var <- "mpg"`,
     how can you extract the reference variable from a tibble?
     
-    <div class="answer">
+    ::: answer
     ```{r}
     tb_mtcars <- as_tibble(mtcars)
     var <- "mpg"
@@ -213,7 +213,7 @@ The main reason that some older functions don't work with tibble is the `[` func
     tb_mtcars[[var]]
     ```
     
-    </div>
+    :::
 
 1.  Practice referring to non-syntactic names in the following data frame by:
 
@@ -232,7 +232,7 @@ The main reason that some older functions don't work with tibble is the `[` func
     )
     ```
     
-    <div class="answer">
+    ::: answer
     ```{r}
     annoying[["1"]]
     
@@ -247,11 +247,11 @@ The main reason that some older functions don't work with tibble is the `[` func
         three = `3`
       )
     ```
-    </div>
+    :::
 
 1.  What does `tibble::enframe()` do? When might you use it?
 
-    <div class="answer">
+    ::: answer
     `enframe()` can be used to convert a named character string or list in to a tibble. Note that each element gets its own row.
     ```{r}
     (vec <- c(a = 5, b = 7))
@@ -260,11 +260,11 @@ The main reason that some older functions don't work with tibble is the `[` func
     (ls <- list(one = 1, two = 2:3, three = 4:6))
     enframe(ls)
     ```
-    </div>
+    :::
 
 1.  What option controls how many additional column names are printed
     at the footer of a tibble?
     
-    <div class="answer">
+    ::: answer
     `tibble.max_extra_cols`
-    </div>
+    :::
